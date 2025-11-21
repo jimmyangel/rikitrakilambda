@@ -1,0 +1,8 @@
+# dependencies
+node_modules/
+
+# The actual database exports
+exports/
+
+.aws-sam/
+

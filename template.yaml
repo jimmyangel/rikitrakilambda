@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Manual SAM project with listTracks Lambda
+
+Resources:
+  rikitrakiapi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  ListTracksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: listTracks
+      Handler: index.handler
+      Runtime: nodejs22.x
+      CodeUri: functions/listTracks/
+      MemorySize: 128
+      Timeout: 5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBReadPolicy:
+            TableName: rikitrakidyn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
+  MotdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: motd
+      CodeUri: functions/motd/
+      Handler: index.handler
+      Runtime: nodejs22.x
+      MemorySize: 128
+      Timeout: 5
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          INDEX_NAME: TracksByDate
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /motd
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
+Outputs:
+  ApiGatewayBaseUrl:
+    Description: "API Gateway base URL for Prod stage"
+    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+
+  ListTracksEndpoint:
+    Description: "Full endpoint for listTracks Lambda"
+    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks"
+

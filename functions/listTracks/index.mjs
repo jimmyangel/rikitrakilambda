@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
+//import { corsHeaders } from '../../utils/config.mjs'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)

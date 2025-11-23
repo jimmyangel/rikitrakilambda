@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Manual SAM project with listTracks Lambda
+Description: Manual SAM project with getTracks Lambda
 
 Resources:
   rikitrakiapi:
@@ -13,20 +13,24 @@ Resources:
         AllowMethods: "'OPTIONS,GET,POST'"
         AllowHeaders: "'Content-Type,Authorization'"
         AllowOrigin: "'*'"
+      CacheClusterEnabled: false
 
-  ListTracksFunction:
+  getTracksFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: listTracks
-      Handler: listTracks.handler
+      FunctionName: getTracks
+      Handler: getTracks.handler
       Runtime: nodejs22.x
       CodeUri: functions/
-      MemorySize: 128
-      Timeout: 5
+      MemorySize: 256
+      Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
-        - DynamoDBReadPolicy:
-            TableName: rikitrakidyn
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
           Type: Api
@@ -35,16 +39,17 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
-  MotdFunction:
+  getMotdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: motd
+      FunctionName: getMotd
       CodeUri: functions/
-      Handler: motd.handler
+      Handler: getMotd.handler
       Runtime: nodejs22.x
-      MemorySize: 128
+      MemorySize: 256
       Timeout: 5
       Policies:
+        - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
@@ -58,12 +63,12 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
-  ThumbnailFunction:
+  getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: thumbnail
+      FunctionName: getThumbnail
       CodeUri: functions/
-      Handler: thumbnail.handler
+      Handler: getThumbnail.handler
       Runtime: nodejs22.x
       MemorySize: 256
       Timeout: 10
@@ -86,6 +91,15 @@ Outputs:
     Description: "API Gateway base URL for Prod stage"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
 
-  ListTracksEndpoint:
-    Description: "Full endpoint for listTracks Lambda"
+  getTracksEndpoint:
+    Description: "Full endpoint for getTracks Lambda"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks"
+
+  getMotdEndpoint:
+    Description: "Full endpoint for getMotd Lambda"
+    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/motd"
+
+  getThumbnailEndpoint:
+    Description: "Full endpoint for getMotd Lambda"
+    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks/{trackId}/thumbnail/{picIndex}"
+

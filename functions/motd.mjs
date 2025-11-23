@@ -1,17 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
-//import { corsHeaders } from "../../utils/config.mjs"
+import { corsHeaders } from "./utils/config.mjs"
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 
 const MAX_MOTD = 5
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type,Authorization",
-  "Access-Control-Allow-Methods": "OPTIONS,GET"
-}
 
 export const handler = async (event) => {
   try {

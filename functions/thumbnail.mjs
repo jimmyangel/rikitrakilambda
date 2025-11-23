@@ -1,12 +1,7 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import { corsHeaders } from "./utils/config.mjs"
 
 const s3 = new S3Client({})
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type,Authorization",
-  "Access-Control-Allow-Methods": "OPTIONS,GET"
-}
 
 export const handler = async (event) => {
   try {

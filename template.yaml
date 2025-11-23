@@ -18,9 +18,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: listTracks
-      Handler: index.handler
+      Handler: listTracks.handler
       Runtime: nodejs22.x
-      CodeUri: functions/listTracks/
+      CodeUri: functions/
       MemorySize: 128
       Timeout: 5
       Policies:
@@ -39,8 +39,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: motd
-      CodeUri: functions/motd/
-      Handler: index.handler
+      CodeUri: functions/
+      Handler: motd.handler
       Runtime: nodejs22.x
       MemorySize: 128
       Timeout: 5
@@ -62,8 +62,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: thumbnail
-      CodeUri: functions/thumbnail/
-      Handler: index.handler
+      CodeUri: functions/
+      Handler: thumbnail.handler
       Runtime: nodejs22.x
       MemorySize: 256
       Timeout: 10

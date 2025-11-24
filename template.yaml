@@ -39,6 +39,30 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  getNumberOfTracksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getNumberOfTracks
+      Handler: getNumberOfTracks.handler
+      Runtime: nodejs22.x
+      CodeUri: functions/
+      MemorySize: 256
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          INDEX_NAME: TracksByDate
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks/number
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
   getMotdFunction:
     Type: AWS::Serverless::Function
     Properties:

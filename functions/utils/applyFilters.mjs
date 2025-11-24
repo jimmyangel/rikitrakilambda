@@ -1,4 +1,4 @@
-// Map client filter keys to DynamoDB attribute names
+// Internal mapping: client filter keys → DynamoDB attributes
 const filterMap = {
   username: "username",
   trackFav: "trackFav",
@@ -8,15 +8,20 @@ const filterMap = {
   region: "trackRegionTags[1]"
 }
 
+// Helper: check if filter contains any mapped keys
+export const hasExtraFilters = (filter) => {
+  if (!filter) return false
+  return Object.keys(filter).some(key => filterMap[key])
+}
+
 const matches = (item, condition) => {
   return Object.entries(condition).every(([key, value]) => {
     const dbKey = filterMap[key]
     if (!dbKey) return true // ignore unknown filters
 
     // Special case: country/region inside trackRegionTags
-    if (dbKey.startsWith("trackRegionTags[")) {
-      const idx = parseInt(dbKey.match(/\[(\d+)\]/)[1], 10)
-      return item.trackRegionTags && item.trackRegionTags[idx] === value
+    if (key === "country" || key === "region") {
+      return item.trackRegionTags && item.trackRegionTags.includes(value)
     }
 
     // Special case: activity is a comma‑separated list of trackTypes
@@ -38,18 +43,19 @@ const matches = (item, condition) => {
 export const applyFilters = (items, filter) => {
   if (!filter || Object.keys(filter).length === 0) return items
 
+  let filtered
+
   if (filter.and) {
-    return items.filter(item =>
+    filtered = items.filter(item =>
       filter.and.every(cond => matches(item, cond))
     )
-  }
-
-  if (filter.or) {
-    return items.filter(item =>
+  } else if (filter.or) {
+    filtered = items.filter(item =>
       filter.or.some(cond => matches(item, cond))
     )
+  } else {
+    filtered = items.filter(item => matches(item, filter))
   }
 
-  // Flat filter object
-  return items.filter(item => matches(item, filter))
+  return filtered
 }

@@ -1,5 +1,5 @@
 // Shared query planner for getTracks and getNumberOfTracks
-export function buildTracksQuery(filter, mode = 'items', limit = 5000) {
+export function buildTracksQuery(filter, limit = 5000) {
   let indexName, keyName, keyValue
 
   if (filter.username) {
@@ -37,9 +37,10 @@ export function buildTracksQuery(filter, mode = 'items', limit = 5000) {
       ':false': false
     },
     FilterExpression: 'attribute_not_exists(isDeleted) OR isDeleted = :false',
-    Select: mode === 'count' ? 'COUNT' : 'ALL_ATTRIBUTES',
+    Select: 'ALL_ATTRIBUTES', // always return items; caller can override if needed
     Limit: limit
   }
 }
+
 
 

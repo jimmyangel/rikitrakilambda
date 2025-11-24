@@ -9,7 +9,8 @@ export const handler = async (event) => {
   try {
     const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit, 10): 5000
     const rawFilter = event.queryStringParameters?.filter
-    const filter = rawFilter ? JSON.parse(rawFilter) : {}
+
+    const filter = rawFilter ? JSON.parse(decodeURIComponent(rawFilter)) : {}
 
     const request = buildTracksQuery(filter, 'count', limit)
     const result = await client.send(new QueryCommand(request))

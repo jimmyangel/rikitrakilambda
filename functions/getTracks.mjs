@@ -1,34 +1,21 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { corsHeaders } from "./utils/config.mjs"
+import { buildTracksQuery } from './utils/queryPlanner.mjs'
 
-const client = new DynamoDBClient({})
-const docClient = DynamoDBDocumentClient.from(client)
+const client = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
 export const handler = async (event) => {
   try {
-    const limit = event.queryStringParameters?.limit
-      ? parseInt(event.queryStringParameters.limit, 10)
-      : 5000
+    const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit, 10): 5000
+    const rawFilter = event.queryStringParameters?.filter
+    const filter = rawFilter ? JSON.parse(decodeURIComponent(rawFilter)) : {}
+    const proj = event.queryStringParameters?.proj // 'small' or undefined
 
-    const proj = event.queryStringParameters?.proj || "full"
+    const request = buildTracksQuery(filter, 'items', limit)
+    const result = await client.send(new QueryCommand(request))
 
-    const command = new QueryCommand({
-      TableName: "rikitrakidyn",
-      IndexName: "TracksByDate",
-      KeyConditionExpression: "tracksIndexPK = :pk",
-      ExpressionAttributeValues: {
-        ":pk": "TRACKS",
-        ":false": false
-      },
-      FilterExpression: "attribute_not_exists(isDeleted) OR isDeleted = :false",
-      ScanIndexForward: false
-      // Limit: limit
-    })
-
-    const response = await docClient.send(command)
-
-    let items = response.Items
+    let items = result.Items || []
 
     if (proj === "small") {
       // Curated response: only return a subset of fields

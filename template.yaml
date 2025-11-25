@@ -133,6 +133,31 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  getTrackGeotagsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getTrackGeotags
+      CodeUri: functions/
+      Handler: getTrackGeotags.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+        - AmazonS3ReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          BUCKET_NAME: rikitraki
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks/{trackId}/geotags
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "API Gateway base URL for Prod stage"

@@ -133,6 +133,29 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  getPictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getPicture
+      CodeUri: functions/
+      Handler: getPicture.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3ReadOnlyAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: rikitraki
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks/{trackId}/picture/{picIndex}
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
   getTrackGeotagsFunction:
     Type: AWS::Serverless::Function
     Properties:

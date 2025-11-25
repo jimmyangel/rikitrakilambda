@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Manual SAM project with getTracks Lambda
+Description: SAM project for rikitraki back end Lambdas
 
 Resources:
   rikitrakiapi:
@@ -22,7 +22,7 @@ Resources:
       Handler: getTracks.handler
       Runtime: nodejs22.x
       CodeUri: functions/
-      MemorySize: 256
+      MemorySize: 1024
       Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -46,7 +46,7 @@ Resources:
       Handler: getNumberOfTracks.handler
       Runtime: nodejs22.x
       CodeUri: functions/
-      MemorySize: 256
+      MemorySize: 1024
       Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -63,6 +63,29 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  getTrackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getTrack
+      Handler: getTrack.handler
+      Runtime: nodejs22.x
+      CodeUri: functions/
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks/{trackId}
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
   getMotdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -70,8 +93,8 @@ Resources:
       CodeUri: functions/
       Handler: getMotd.handler
       Runtime: nodejs22.x
-      MemorySize: 256
-      Timeout: 5
+      MemorySize: 1024
+      Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
@@ -94,7 +117,7 @@ Resources:
       CodeUri: functions/
       Handler: getThumbnail.handler
       Runtime: nodejs22.x
-      MemorySize: 256
+      MemorySize: 1024
       Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole

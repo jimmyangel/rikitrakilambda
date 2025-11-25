@@ -1,0 +1,34 @@
+[
+  {
+    "trackId": "t1",
+    "username": "alice",
+    "trackRegionTags": ["US", "Oregon"],
+    "trackType": "Hiking",
+    "trackLevel": "Easy",
+    "trackFav": true
+  },
+  {
+    "trackId": "t2",
+    "username": "bob",
+    "trackRegionTags": ["US", "California"],
+    "trackType": "Cycling",
+    "trackLevel": "Medium",
+    "trackFav": false
+  },
+  {
+    "trackId": "t3",
+    "username": "carol",
+    "trackRegionTags": ["Oregon", "US"],
+    "trackType": "Running",
+    "trackLevel": "Hard",
+    "trackFav": true
+  },
+  {
+    "trackId": "t4",
+    "username": "dave",
+    "trackRegionTags": ["Canada", "BC"],
+    "trackType": "Skiing",
+    "trackLevel": "Expert",
+    "trackFav": false
+  }
+]

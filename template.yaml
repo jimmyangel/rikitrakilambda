@@ -8,7 +8,7 @@ Resources:
     Properties:
       StageName: Prod
       BinaryMediaTypes: 
-       - "*/*"
+       - "image/jpeg"
       Cors:
         AllowMethods: "'OPTIONS,GET,POST'"
         AllowHeaders: "'Content-Type,Authorization'"

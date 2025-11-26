@@ -204,6 +204,31 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  getTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getToken
+      CodeUri: functions/
+      Handler: getToken.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /token
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "API Gateway base URL for Prod stage"

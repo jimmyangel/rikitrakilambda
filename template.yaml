@@ -8,7 +8,7 @@ Resources:
     Properties:
       StageName: Prod
       BinaryMediaTypes: 
-       - "image/jpeg"
+       - "*/*"
       Cors:
         AllowMethods: "'OPTIONS,GET,POST'"
         AllowHeaders: "'Content-Type,Authorization'"
@@ -153,6 +153,29 @@ Resources:
           Type: Api
           Properties:
             Path: /tracks/{trackId}/picture/{picIndex}
+            Method: get
+            RestApiId: !Ref rikitrakiapi
+
+  getTrackGPXFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getTrackGPX
+      CodeUri: functions/
+      Handler: getTrackGPX.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3ReadOnlyAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: rikitraki
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /tracks/{trackId}/GPX
             Method: get
             RestApiId: !Ref rikitrakiapi
 

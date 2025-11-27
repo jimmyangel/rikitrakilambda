@@ -58,6 +58,14 @@ describe("getToken Lambda", () => {
     expect(res.statusCode).toBe(401)
   })
 
+  test("returns 403 for user not activated", async () => {
+    ddbMock.on(GetCommand).resolves({ Item: { pk: "USER#alice", password: "hashed", isInactive: true } })
+    bcrypt.compareSync.mockReturnValue(true)
+
+    const res = await handler(baseEvent)
+    expect(res.statusCode).toBe(403)
+  })
+
   test("returns 500 on DB error", async () => {
     const spy = jest.spyOn(console, "error").mockImplementation(() => {})
     

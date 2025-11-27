@@ -36,11 +36,20 @@ export const handler = async (event) => {
         }))
 
         const user = result?.Item
+
         if (!user || !bcrypt.compareSync(password, user.password)) {
             return {
-            statusCode: 401,
-            headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
-            body: ""
+                statusCode: 401,
+                headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
+                body: ""
+            }
+        }
+
+        if (user.isInactive) {
+            return {
+                statusCode: 403,
+                headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
+                body: JSON.stringify({error: 'Inactive', description: 'account not activated'})
             }
         }
 

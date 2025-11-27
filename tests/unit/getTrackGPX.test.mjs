@@ -1,7 +1,7 @@
 import { mockClient } from "aws-sdk-client-mock"
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
 import { Readable } from "stream"
-import { handler } from "../../functions/getTrackGPX.mjs"
+import { handler } from "../../functions/tracks/getTrackGPX.mjs"
 
 const s3Mock = mockClient(S3Client)
 

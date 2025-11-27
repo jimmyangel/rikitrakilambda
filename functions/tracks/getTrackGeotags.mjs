@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
-import { corsHeaders } from "./utils/config.mjs"
+import { corsHeaders } from "../utils/config.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const s3 = new S3Client({})

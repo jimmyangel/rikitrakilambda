@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
-import { corsHeaders } from "./utils/config.mjs"
+import { corsHeaders } from "../utils/config.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
@@ -45,12 +45,14 @@ export const handler = async (event) => {
         }
 
         // Issue JWT
-        console.log(JWT_SECRET)
         const token = jwt.sign({ iss: JWT_ISSUER, sub: username }, JWT_SECRET)
 
         return {
             statusCode: 200,
-            headers: corsHeaders,
+            headers: {
+                ...corsHeaders,
+                "Content-Type": "text/html; charset=utf-8",
+            },
             body: token
         }
 

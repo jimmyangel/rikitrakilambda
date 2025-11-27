@@ -17,4 +17,3 @@ test("defaults to TracksByDate when no filter provided", () => {
   expect(query.IndexName).toBe("TracksByDate")
   expect(query.ExpressionAttributeValues[":pk"]).toBe("TRACKS")
 })
-

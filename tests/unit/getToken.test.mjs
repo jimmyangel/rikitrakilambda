@@ -1,4 +1,4 @@
-import { handler } from "../../functions/getToken.mjs"
+import { handler } from "../../functions/users/getToken.mjs"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb"

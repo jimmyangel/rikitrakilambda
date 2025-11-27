@@ -1,8 +1,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
-import { corsHeaders } from "./utils/config.mjs"
-import { buildTracksQuery } from './utils/queryPlanner.mjs'
-import { applyFilters } from "./utils/applyFilters.mjs"
+import { corsHeaders } from "../utils/config.mjs"
+import { buildTracksQuery } from '../utils/queryPlanner.mjs'
+import { applyFilters } from "../utils/applyFilters.mjs"
 
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 

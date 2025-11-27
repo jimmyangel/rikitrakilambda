@@ -10,8 +10,8 @@ Resources:
       BinaryMediaTypes: 
        - "*/*"
       Cors:
-        AllowMethods: "'OPTIONS,GET,POST'"
-        AllowHeaders: "'Content-Type,Authorization'"
+        AllowMethods: "'OPTIONS,GET,POST,PUT'"
+        AllowHeaders: "'Content-Type,Authorization,Origin,Accept'"
         AllowOrigin: "'*'"
       CacheClusterEnabled: false
 
@@ -19,7 +19,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTracks
-      Handler: getTracks.handler
+      Handler: tracks/getTracks.handler
       Runtime: nodejs22.x
       CodeUri: functions/
       MemorySize: 1024
@@ -43,7 +43,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getNumberOfTracks
-      Handler: getNumberOfTracks.handler
+      Handler: tracks/getNumberOfTracks.handler
       Runtime: nodejs22.x
       CodeUri: functions/
       MemorySize: 1024
@@ -67,7 +67,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTrack
-      Handler: getTrack.handler
+      Handler: tracks/getTrack.handler
       Runtime: nodejs22.x
       CodeUri: functions/
       MemorySize: 1024
@@ -91,7 +91,7 @@ Resources:
     Properties:
       FunctionName: getMotd
       CodeUri: functions/
-      Handler: getMotd.handler
+      Handler: tracks/getMotd.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -115,7 +115,7 @@ Resources:
     Properties:
       FunctionName: getThumbnail
       CodeUri: functions/
-      Handler: getThumbnail.handler
+      Handler:  tracks/getThumbnail.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -138,7 +138,7 @@ Resources:
     Properties:
       FunctionName: getPicture
       CodeUri: functions/
-      Handler: getPicture.handler
+      Handler:  tracks/getPicture.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -161,7 +161,7 @@ Resources:
     Properties:
       FunctionName: getTrackGPX
       CodeUri: functions/
-      Handler: getTrackGPX.handler
+      Handler:  tracks/getTrackGPX.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -184,7 +184,7 @@ Resources:
     Properties:
       FunctionName: getTrackGeotags
       CodeUri: functions/
-      Handler: getTrackGeotags.handler
+      Handler:  tracks/getTrackGeotags.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -209,7 +209,7 @@ Resources:
     Properties:
       FunctionName: getToken
       CodeUri: functions/
-      Handler: getToken.handler
+      Handler: users/getToken.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -227,6 +227,25 @@ Resources:
           Properties:
             Path: /token
             Method: get
+            RestApiId: !Ref rikitrakiapi
+
+  optionsTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: optionsToken
+      CodeUri: functions/
+      Handler: users/optionsToken.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /token
+            Method: options
             RestApiId: !Ref rikitrakiapi
 
 Outputs:

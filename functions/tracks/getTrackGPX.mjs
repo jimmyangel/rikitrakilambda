@@ -1,5 +1,5 @@
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
-import { corsHeaders } from "./utils/config.mjs"
+import { corsHeaders } from "../utils/config.mjs"
 
 const s3 = new S3Client({})
 

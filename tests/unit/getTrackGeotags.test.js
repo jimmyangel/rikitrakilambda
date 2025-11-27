@@ -1,7 +1,7 @@
 import { mockClient } from "aws-sdk-client-mock"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
-import { handler } from "../../functions/getTrackGeotags.mjs"
+import { handler } from "../../functions/tracks/getTrackGeotags.mjs"
 import { Readable } from "stream"
 
 // Create mocks for both clients

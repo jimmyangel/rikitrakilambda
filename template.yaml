@@ -229,23 +229,54 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
-  optionsTokenFunction:
+  optionsCommonFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: optionsToken
+      FunctionName: optionsCommon
       CodeUri: functions/
-      Handler: users/optionsToken.handler
+      Handler: users/optionsCommon.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
       Events:
-        ApiEvent:
+        TokenOptions:
           Type: Api
           Properties:
             Path: /token
             Method: options
+            RestApiId: !Ref rikitrakiapi
+        UserInfoOptions:
+          Type: Api
+          Properties:
+            Path: /users/me
+            Method: options
+            RestApiId: !Ref rikitrakiapi
+
+  getUserInfoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getUserInfo
+      CodeUri: functions/
+      Handler: users/getUserInfo.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/me
+            Method: get
             RestApiId: !Ref rikitrakiapi
 
 Outputs:

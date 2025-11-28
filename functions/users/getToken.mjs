@@ -17,9 +17,9 @@ export const handler = async (event) => {
         const authHeader = event.headers?.Authorization || event.headers?.authorization
         if (!authHeader || !authHeader.startsWith("Basic ")) {
             return {
-            statusCode: 401,
-            headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
-            body: ""
+                statusCode: 401,
+                headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
+                body: ""
             }
         }
 

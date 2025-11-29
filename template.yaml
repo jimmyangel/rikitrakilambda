@@ -279,6 +279,29 @@ Resources:
             Method: get
             RestApiId: !Ref rikitrakiapi
 
+  updateUserProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateUserProfile
+      CodeUri: functions/
+      Handler: users/updateUserProfile.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/me
+            Method: put
+            RestApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "API Gateway base URL for Prod stage"

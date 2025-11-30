@@ -5,6 +5,7 @@
   "scripts": {
     "clean": "for i in {1..3}; do rm -rf .aws-sam/build && break || sleep 1; done",
     "build": "npm run clean && sam build",
+    "buildnc": "npm run clean && sam build --no-cached",
     "deploy": "npm run build && sam deploy",
     "dev": "sam build && sam local start-api",
     "watch": "nodemon --watch functions --ext js,mjs,json,yaml --exec \"npm run dev\"",

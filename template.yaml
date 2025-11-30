@@ -4,16 +4,20 @@ Description: SAM project for rikitraki back end Lambdas
 
 Resources:
   rikitrakiapi:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::HttpApi
     Properties:
       StageName: Prod
-      BinaryMediaTypes: 
-       - "*/*"
-      Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT'"
-        AllowHeaders: "'Content-Type,Authorization,Origin,Accept'"
-        AllowOrigin: "'*'"
-      CacheClusterEnabled: false
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        AllowOrigins:
+          - "*"
 
   getTracksFunction:
     Type: AWS::Serverless::Function
@@ -33,11 +37,11 @@ Resources:
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getNumberOfTracksFunction:
     Type: AWS::Serverless::Function
@@ -57,11 +61,11 @@ Resources:
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/number
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getTrackFunction:
     Type: AWS::Serverless::Function
@@ -80,11 +84,11 @@ Resources:
           TABLE_NAME: rikitrakidyn
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/{trackId}
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getMotdFunction:
     Type: AWS::Serverless::Function
@@ -104,18 +108,18 @@ Resources:
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /motd
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getThumbnail
       CodeUri: functions/
-      Handler:  tracks/getThumbnail.handler
+      Handler: tracks/getThumbnail.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -127,18 +131,18 @@ Resources:
           BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/{trackId}/thumbnail/{picIndex}
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getPictureFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getPicture
       CodeUri: functions/
-      Handler:  tracks/getPicture.handler
+      Handler: tracks/getPicture.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -150,18 +154,18 @@ Resources:
           BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/{trackId}/picture/{picIndex}
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getTrackGPXFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTrackGPX
       CodeUri: functions/
-      Handler:  tracks/getTrackGPX.handler
+      Handler: tracks/getTrackGPX.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -173,18 +177,18 @@ Resources:
           BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/{trackId}/GPX
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getTrackGeotagsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTrackGeotags
       CodeUri: functions/
-      Handler:  tracks/getTrackGeotags.handler
+      Handler: tracks/getTrackGeotags.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 10
@@ -198,11 +202,11 @@ Resources:
           BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /tracks/{trackId}/geotags
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getTokenFunction:
     Type: AWS::Serverless::Function
@@ -223,36 +227,11 @@ Resources:
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /token
             Method: get
-            RestApiId: !Ref rikitrakiapi
-
-  optionsCommonFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: optionsCommon
-      CodeUri: functions/
-      Handler: users/optionsCommon.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
-      Policies:
-        - AWSLambdaBasicExecutionRole
-      Events:
-        TokenOptions:
-          Type: Api
-          Properties:
-            Path: /token
-            Method: options
-            RestApiId: !Ref rikitrakiapi
-        UserInfoOptions:
-          Type: Api
-          Properties:
-            Path: /users/me
-            Method: options
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   getUserInfoFunction:
     Type: AWS::Serverless::Function
@@ -273,11 +252,11 @@ Resources:
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /users/me
             Method: get
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
   updateUserProfileFunction:
     Type: AWS::Serverless::Function
@@ -296,15 +275,15 @@ Resources:
           TABLE_NAME: rikitrakidyn
       Events:
         ApiEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /users/me
             Method: put
-            RestApiId: !Ref rikitrakiapi
+            ApiId: !Ref rikitrakiapi
 
 Outputs:
   ApiGatewayBaseUrl:
-    Description: "API Gateway base URL for Prod stage"
+    Description: "HTTP API base URL for Prod stage"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
 
   getTracksEndpoint:
@@ -316,6 +295,5 @@ Outputs:
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/motd"
 
   getThumbnailEndpoint:
-    Description: "Full endpoint for getMotd Lambda"
+    Description: "Full endpoint for getThumbnail Lambda"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks/{trackId}/thumbnail/{picIndex}"
-

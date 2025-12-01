@@ -1,12 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const s3 = new S3Client({})
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     const trackId = event.pathParameters?.trackId
     if (!trackId) {
@@ -31,7 +32,7 @@ export const handler = async (event) => {
       return {
         statusCode: 404,
         headers: corsHeaders,
-        body: JSON.stringify({ error: "No photos found for track" })
+        body: JSON.stringify({ error: messages.WARN_NO_PHOTOS_FOR_TRACK })
       }
     }
 
@@ -70,11 +71,11 @@ export const handler = async (event) => {
       })
     }
   } catch (err) {
-    console.error("Error in getTrackGeotags:", err)
+    logger.error(messages.ERROR_FETCH_GEOTAGS, { err: { message: err.message } }, context)    
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "Internal Server Error" })
+      body: JSON.stringify({ error: messages.ERROR_FETCH_GEOTAGS })
     }
   }
 }

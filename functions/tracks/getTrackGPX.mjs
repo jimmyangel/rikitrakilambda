@@ -1,9 +1,10 @@
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
 import { corsHeaders } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const s3 = new S3Client({})
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     const { trackId } = event.pathParameters
     const bucket = process.env.BUCKET_NAME
@@ -53,11 +54,11 @@ export const handler = async (event) => {
     }
 
   } catch (err) {
-    console.error("Error fetching GPX:", err)
+    logger.error(messages.ERROR_FETCH_GPX, { err: { message: err.message } }, context)
     return {
       statusCode: 404,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "GPX file not found" })
+      body: JSON.stringify({ error: messages.ERROR_FETCH_GPX })
     }
   }
 }

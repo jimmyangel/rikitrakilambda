@@ -1,13 +1,14 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { corsHeaders } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 
 const MAX_MOTD = 5
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     let motdTracks = []
     let lastEvaluatedKey = undefined
@@ -53,8 +54,7 @@ export const handler = async (event) => {
     }
 
   } catch (err) {
-    console.error("Error querying MOTD tracks:", err)
-
+    logger.error('Error querying MOTD tracks', { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,

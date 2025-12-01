@@ -1,9 +1,10 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 import { corsHeaders } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const s3 = new S3Client({})
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     const { trackId, picIndex } = event.pathParameters
     const bucket = process.env.BUCKET_NAME
@@ -35,7 +36,7 @@ export const handler = async (event) => {
     }
 
   } catch (err) {
-    console.error("Error fetching picture:", err)
+    logger.error('Error fetching picture', { err: { message: err.message } }, context)
     return {
       statusCode: 404,
       headers: corsHeaders,

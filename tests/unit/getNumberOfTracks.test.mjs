@@ -1,6 +1,7 @@
 import { handler } from '../../functions/tracks/getNumberOfTracks.mjs'
 import * as logger from '../../functions/utils/logger.mjs'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
+import { messages } from "../../functions/utils/config.mjs"
 
 describe('getNumberOfTracks handler', () => {
   let sendSpy
@@ -35,7 +36,7 @@ describe('getNumberOfTracks handler', () => {
     const response = await handler(event, fakeContext)
 
     expect(response.statusCode).toBe(500)
-    expect(JSON.parse(response.body)).toEqual({ error: 'Failed to count tracks' })
+    expect(JSON.parse(response.body)).toEqual({ error: messages.ERROR_TRACKS_QUERY })
 
     expect(logger.error).toHaveBeenCalledWith(
         'Error querying Tracks',

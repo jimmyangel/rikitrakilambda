@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
 import  *  as logger from "../utils/logger.mjs"
 
 const client = new DynamoDBClient({})
@@ -54,11 +54,11 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
-    logger.error('Error querying MOTD tracks', { err: { message: err.message } }, context)
+    logger.error(messages.ERROR_MOTD_TRACKS, { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "Internal Server Error" })
+      body: JSON.stringify({ error: messages.ERROR_MOTD_TRACKS })
     }
   }
 }

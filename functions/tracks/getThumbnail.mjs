@@ -1,5 +1,5 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
 import  *  as logger from "../utils/logger.mjs"
 
 const s3 = new S3Client({})
@@ -36,11 +36,11 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
-    logger.error('Error fetching thumbnail', { err: { message: err.message } }, context)
+    logger.error(messages.ERROR_FETCH_THUMB, { err: { message: err.message } }, context)
     return {
       statusCode: 404,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "Thumbnail not found" })
+      body: JSON.stringify({ error: messages.ERROR_FETCH_THUMB })
     }
   }
 }

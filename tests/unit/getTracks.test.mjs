@@ -1,6 +1,6 @@
 import { handler } from '../../functions/tracks/getTracks.mjs'
 import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
-import { corsHeaders } from '../../functions/utils/config.mjs'
+import { corsHeaders, messages } from '../../functions/utils/config.mjs'
 import * as logger from '../../functions/utils/logger.mjs'   // <-- import your logger
 
 // Mock utils
@@ -61,7 +61,7 @@ describe('getTracks handler (prototype spy)', () => {
 
     expect(response.statusCode).toBe(500)
     const body = JSON.parse(response.body)
-    expect(body.error).toBe('Internal server error')
+    expect(body.error).toBe(messages.ERROR_TRACKS_QUERY)
 
     // Verify logger.error was called with message, error object, and context
     expect(loggerSpy).toHaveBeenCalledWith(

@@ -2,6 +2,7 @@ import { mockClient } from "aws-sdk-client-mock"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 import { Readable } from "stream"
 import { handler } from "../../functions/tracks/getPicture.mjs"
+import { messages } from "../../functions/utils/config.mjs"
 
 const s3Mock = mockClient(S3Client)
 
@@ -39,7 +40,7 @@ test("returns 404 when S3 throws error", async () => {
     const response = await handler({ pathParameters: { trackId: "t1", picIndex: "0" } })
 
     expect(response.statusCode).toBe(404)
-    expect(JSON.parse(response.body)).toEqual({ error: "Picture not found" })
+    expect(JSON.parse(response.body)).toEqual({ error: messages.ERROR_FETCH_PIC })
 
     spy.mockRestore()
 })

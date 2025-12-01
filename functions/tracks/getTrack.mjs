@@ -1,10 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     const trackId = event.pathParameters?.trackId
     if (!trackId) {
@@ -37,11 +38,11 @@ export const handler = async (event) => {
       body: JSON.stringify(result.Item)
     }
   } catch (err) {
-    console.error("Error in getTrack:", err)
+    logger.error(messages.ERROR_TRACKS_QUERY, { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "Internal Server Error" })
+      body: JSON.stringify({ error: messages.ERROR_TRACKS_QUERY })
     }
   }
 }

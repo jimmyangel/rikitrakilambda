@@ -35,7 +35,6 @@ export const handler = async (event) => {
         }
 
         const username = decoded.sub
-        console.log('get user profile for:', username)
 
         // Look up user in DynamoDB
         const result = await ddb.send(new GetCommand({

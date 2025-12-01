@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
 import { buildTracksQuery } from "../utils/queryPlanner.mjs"
 import { applyFilters, hasExtraFilters } from "../utils/applyFilters.mjs"
 import  *  as logger from "../utils/logger.mjs"
@@ -36,11 +36,11 @@ export const handler = async (event, context) => {
       body: JSON.stringify({ numberOfTracks })
     }
   } catch (err) {
-    logger.error('Error querying Tracks', { err: { message: err.message } }, context)
+    logger.error(messages.ERROR_TRACKS_QUERY, { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "Failed to count tracks" })
+      body: JSON.stringify({ error: messages.ERROR_TRACKS_QUERY })
     }
   }
 }

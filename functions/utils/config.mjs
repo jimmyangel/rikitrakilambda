@@ -21,5 +21,6 @@ export const messages = {
   WARN_EMAIL_EXISTS: 'Email already exists',
   WARN_INVALID_AUTH: 'Missing or invalid auth header',
   WARN_INVALID_PASSWORD: 'Invalid password',
-  WARN_NO_DATA: 'No data'
+  WARN_NO_DATA: 'No data',
+  WARN_INVALID_INPUT: 'Invalid input'
 }

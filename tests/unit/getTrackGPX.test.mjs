@@ -2,6 +2,7 @@ import { mockClient } from "aws-sdk-client-mock"
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
 import { Readable } from "stream"
 import { handler } from "../../functions/tracks/getTrackGPX.mjs"
+import { messages } from "../../functions/utils/config.mjs"
 
 const s3Mock = mockClient(S3Client)
 
@@ -42,7 +43,7 @@ test("returns 404 when no GPX file is found", async () => {
   const response = await handler({ pathParameters: { trackId: "t1" } })
 
   expect(response.statusCode).toBe(404)
-  expect(JSON.parse(response.body)).toEqual({ error: "GPX file not found" })
+  expect(JSON.parse(response.body)).toEqual({ error:messages.ERROR_FETCH_GPX })
 })
 
 test("returns 404 when S3 throws error", async () => {
@@ -53,7 +54,7 @@ test("returns 404 when S3 throws error", async () => {
   const response = await handler({ pathParameters: { trackId: "t1" } })
 
   expect(response.statusCode).toBe(404)
-  expect(JSON.parse(response.body)).toEqual({ error: "GPX file not found" })
+  expect(JSON.parse(response.body)).toEqual({ error: messages.ERROR_FETCH_GPX })
 
   spy.mockRestore()
 })

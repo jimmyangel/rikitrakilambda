@@ -3,11 +3,12 @@ import { Buffer } from 'node:buffer'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb'
 import { validate } from '../utils/schemaValidator.mjs'
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
 
     const TABLE_NAME = process.env.TABLE_NAME
 
@@ -29,14 +30,14 @@ export const handler = async (event) => {
         // parse Basic Auth header
         const authHeader = event.headers?.authorization || event.headers?.Authorization
         if (!authHeader?.startsWith('Basic ')) {
-            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: 'Missing Basic auth header' }) }
+            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: messages.WARN_INVALID_AUTH }) }
         }
 
         const base64Credentials = authHeader.split(' ')[1]
         const [username, currentPassword] = Buffer.from(base64Credentials, 'base64').toString().split(':')
 
         if (!username || !currentPassword) {
-            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: 'Invalid Basic auth format' }) }
+            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: messages.WARN_INVALID_AUTH }) }
         }
 
         // fetch user record
@@ -49,12 +50,12 @@ export const handler = async (event) => {
         const storedEmail = existing.Item?.email
 
         if (!storedHash || !bcrypt.compareSync(currentPassword, storedHash)) {
-            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: 'Invalid current password' }) }
+            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'AuthError', description: messages.WARN_INVALID_PASSWORD }) }
         }
 
         // guard: empty body
         if (!body.email && !body.password) {
-            return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'InvalidInput', description: 'No data' }) }
+            return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'InvalidInput', description: messages.WARN_NO_DATA }) }
         }
 
         const transactItems = []
@@ -114,10 +115,10 @@ export const handler = async (event) => {
         return { statusCode: 204, headers: corsHeaders }
 
     } catch (err) {
-        console.error('Caught error:', {name: err.name, message: err.message, stack: err.stack})
         if (err.name === 'TransactionCanceledException') {
-            return { statusCode: 422, headers: corsHeaders, body: JSON.stringify({ error: 'Duplicate', description: 'Email already exists' }) }
+            return { statusCode: 422, headers: corsHeaders, body: JSON.stringify({ error: 'Duplicate', description: messages.WARN_EMAIL_EXISTS }) }
         }
-        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'DatabaseUpdateError', description: err.message }) }
+        logger.error(messages.ERROR_DB, { err: { message: err.message } }, context)
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'DatabaseUpdateError', description: messages.ERROR_DB }) }
     }
 }

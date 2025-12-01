@@ -13,5 +13,13 @@ export const messages = {
   ERROR_FETCH_THUMB: 'Error fetching thumbnail',
   ERROR_FETCH_GEOTAGS: 'Error in fetching track geotags',
   ERROR_FETCH_GPX: 'Error fetching GPX file',
-  WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track'
+  ERROR_DB: 'Cannot connect to database',
+  WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track',
+  WARN_ACCT_NOT_ACTIVE: 'account not activated',
+  WARN_INVALID_TOKEN: 'Missing or invalid token',
+  WARN_USER_NOT_FOUND: 'username not found',
+  WARN_EMAIL_EXISTS: 'Email already exists',
+  WARN_INVALID_AUTH: 'Missing or invalid auth header',
+  WARN_INVALID_PASSWORD: 'Invalid password',
+  WARN_NO_DATA: 'No data'
 }

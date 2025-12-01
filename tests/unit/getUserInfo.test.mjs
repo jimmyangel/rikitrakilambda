@@ -1,6 +1,6 @@
 import { handler } from '../../functions/users/getUserInfo.mjs'
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
-import { corsHeaders } from '../../functions/utils/config.mjs'
+import { corsHeaders, messages } from '../../functions/utils/config.mjs'
 import jwt from 'jsonwebtoken'
 
 // Mock jwt
@@ -78,7 +78,7 @@ describe('getUserInfo handler', () => {
 
     expect(response.statusCode).toBe(500)
     const body = JSON.parse(response.body)
-    expect(body.error).toBe('InternalServerError')
+    expect(body.error).toBe(messages.ERROR_DB)
 
     spy.mockRestore()
   })

@@ -1,5 +1,5 @@
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
-import { corsHeaders } from "../utils/config.mjs"
+import { corsHeaders, messages } from "../utils/config.mjs"
 import  *  as logger from "../utils/logger.mjs"
 
 const s3 = new S3Client({})
@@ -21,7 +21,7 @@ export const handler = async (event, context) => {
       return {
         statusCode: 404,
         headers: corsHeaders,
-        body: JSON.stringify({ error: "GPX file not found" })
+        body: JSON.stringify({ error: messages.ERROR_FETCH_GPX })
       }
     }
 

@@ -1,11 +1,12 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
 import jwt from 'jsonwebtoken'
-import { corsHeaders } from '../utils/config.mjs'
+import { corsHeaders, messages } from '../utils/config.mjs'
+import  *  as logger from "../utils/logger.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
 
     const TABLE_NAME = process.env.TABLE_NAME
     const JWT_SECRET = process.env.JWT_SECRET
@@ -17,7 +18,7 @@ export const handler = async (event) => {
             return {
                 statusCode: 401,
                 headers: corsHeaders,
-                body: JSON.stringify({ error: 'Unauthorized', description: 'Missing or invalid token' })
+                body: JSON.stringify({ error: 'Unauthorized', description: messages.WARN_INVALID_TOKEN })
             }
         }
 
@@ -30,7 +31,7 @@ export const handler = async (event) => {
             return {
                 statusCode: 401,
                 headers: corsHeaders,
-                body: JSON.stringify({ error: 'Unauthorized', description: 'Invalid token' })
+                body: JSON.stringify({ error: 'Unauthorized', description: messages.WARN_INVALID_TOKEN })
             }
         }
 
@@ -55,16 +56,16 @@ export const handler = async (event) => {
             return {
                 statusCode: 404,
                 headers: corsHeaders,
-                body: JSON.stringify({ error: 'NotFound', description: 'username not found' })
+                body: JSON.stringify({ error: 'NotFound', description: messages.WARN_USER_NOT_FOUND })
             }
         }
 
     } catch (err) {
-        console.error('Error in getUserInfo:', err)
+        logger.error(messages.ERROR_DB, { err: { message: err.message } }, context)
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ error: 'InternalServerError' })
+            body: JSON.stringify({ error: messages.ERROR_DB })
         }
     }
 }

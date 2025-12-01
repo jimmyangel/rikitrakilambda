@@ -3,10 +3,11 @@ import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
 import { corsHeaders } from "../utils/config.mjs"
 import { buildTracksQuery } from '../utils/queryPlanner.mjs'
 import { applyFilters } from "../utils/applyFilters.mjs"
+import  *  as logger from "../utils/logger.mjs"
 
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
   try {
     const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit, 10): 5000
     const rawFilter = event.queryStringParameters?.filter
@@ -52,7 +53,7 @@ export const handler = async (event) => {
     };
 
   } catch (err) {
-    console.error("Error querying TracksByDate:", err)
+    logger.error('Error querying Tracks', { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,

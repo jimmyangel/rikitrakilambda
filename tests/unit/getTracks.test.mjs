@@ -1,7 +1,7 @@
-// __tests__/getTracks.test.js
 import { handler } from '../../functions/tracks/getTracks.mjs'
 import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { corsHeaders } from '../../functions/utils/config.mjs'
+import * as logger from '../../functions/utils/logger.mjs'   // <-- import your logger
 
 // Mock utils
 jest.mock('../../functions/utils/queryPlanner.mjs', () => ({
@@ -50,17 +50,26 @@ describe('getTracks handler (prototype spy)', () => {
     expect(body.tracks.t1).toHaveProperty('username') // stripped out
   })
 
-  it('handles errors gracefully', async () => {
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {})
+  it('handles errors gracefully and logs', async () => {
+    // Spy on logger.error instead of console.error
+    const loggerSpy = jest.spyOn(logger, 'error').mockImplementation(() => {})
 
     DynamoDBDocumentClient.prototype.send.mockRejectedValueOnce(new Error('DDB fail'))
+    const fakeContext = { awsRequestId: 'test-req-123' }
     const event = { queryStringParameters: {} }
-    const response = await handler(event)
+    const response = await handler(event, fakeContext)
 
     expect(response.statusCode).toBe(500)
     const body = JSON.parse(response.body)
     expect(body.error).toBe('Internal server error')
 
-    spy.mockRestore()    
+    // Verify logger.error was called with message, error object, and context
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'Error querying Tracks',
+      expect.objectContaining({
+        err: expect.objectContaining({ message: 'DDB fail' })
+      }),
+      fakeContext
+    )
   })
 })

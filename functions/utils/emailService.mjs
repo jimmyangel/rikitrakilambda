@@ -12,8 +12,6 @@ const mailgun = mailgunJs({ apiKey: mailgunApiKey, domain: mailgunDomain })
 // Generic helper
 const sendEmail = async ({ to, subject, text, html }) => {
 
-  console.log(mailgunApiKey)
-
   if (!to || !subject || !text || !html) {
     throw new Error('Missing required email parameters')
   }

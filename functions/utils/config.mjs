@@ -14,6 +14,8 @@ export const messages = {
   ERROR_FETCH_GEOTAGS: 'Error in fetching track geotags',
   ERROR_FETCH_GPX: 'Error fetching GPX file',
   ERROR_DB: 'Cannot connect to database',
+  ERROR_MAILGUN_SEND: 'mailgun send error',
+  ERROR_MAILGUN_BUILD: 'mailgun build error',
   WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track',
   WARN_ACCT_NOT_ACTIVE: 'account not activated',
   WARN_INVALID_TOKEN: 'Missing or invalid token',

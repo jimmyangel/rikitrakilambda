@@ -332,19 +332,34 @@ Resources:
             Method: put
             ApiId: !Ref rikitrakiapi
 
+  createUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: createUser
+      CodeUri: functions/
+      Handler: users/createUser.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+          MAILGUN_API_KEY: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /users
+            Method: post
+            ApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "HTTP API base URL for Prod stage"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
-
-  getTracksEndpoint:
-    Description: "Full endpoint for getTracks Lambda"
-    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks"
-
-  getMotdEndpoint:
-    Description: "Full endpoint for getMotd Lambda"
-    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/motd"
-
-  getThumbnailEndpoint:
-    Description: "Full endpoint for getThumbnail Lambda"
-    Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tracks/{trackId}/thumbnail/{picIndex}"
+    

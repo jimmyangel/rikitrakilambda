@@ -17,6 +17,7 @@ export const messages = {
   WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track',
   WARN_ACCT_NOT_ACTIVE: 'account not activated',
   WARN_INVALID_TOKEN: 'Missing or invalid token',
+  WARN_MISSING_USERNAME_OR_TOKEN: '',
   WARN_USER_NOT_FOUND: 'username not found',
   WARN_EMAIL_EXISTS: 'Email already exists',
   WARN_INVALID_AUTH: 'Missing or invalid auth header',

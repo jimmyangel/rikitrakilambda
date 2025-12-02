@@ -49,7 +49,7 @@ describe('getResetToken handler (unit)', () => {
     const response = await handler(event)
 
     expect(response.statusCode).toBe(200)
-    expect(JSON.parse(response.body)).toEqual({ message: 'email sent' })
+    expect(JSON.parse(response.body)).toEqual({ message: 'reset password email sent' })
     expect(sendSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'test@example.com',

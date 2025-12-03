@@ -11,7 +11,7 @@ import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynam
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
     const TABLE_NAME = process.env.TABLE_NAME
     const JWT_SECRET = process.env.JWT_SECRET
     const JWT_ISSUER = process.env.JWT_ISSUER
@@ -74,7 +74,7 @@ export const handler = async (event) => {
                     body: JSON.stringify({ error: 'Duplicate', description: messages.WARN_USER_EXISTS })
                 }
             }
-            logger.error(messages.ERROR_DB_USER, { err: { message: err.message } })
+            logger.error(messages.ERROR_DB_USER, { err: { message: err.message } }, context)
             return {
                 statusCode: 500,
                 headers: corsHeaders,
@@ -94,7 +94,7 @@ export const handler = async (event) => {
                 rturl: body.rturl
             })
         } catch (mailErr) {
-            logger.error(messages.ERROR_MAILGUN_SEND, { err: { message: mailErr.message } })
+            logger.error(messages.ERROR_MAILGUN_SEND, { err: { message: mailErr.message } }, context)
             // Don’t fail user creation if email fails
         }
 
@@ -104,7 +104,7 @@ export const handler = async (event) => {
             body: JSON.stringify({ username: body.username })
         }
     } catch (err) {
-        logger.error(messages.ERROR_DB, { err: { message: err.message } })
+        logger.error("Database error on user create", { err: { message: err.message } }, context)
         return {
             statusCode: 500,
             headers: corsHeaders,

@@ -358,8 +358,32 @@ Resources:
             Method: post
             ApiId: !Ref rikitrakiapi
 
+  activateAccountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: activateAccount
+      CodeUri: functions/
+      Handler: users/activateAccount.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /users/{username}/activation
+            Method: put
+            ApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "HTTP API base URL for Prod stage"
     Value: !Sub "https://${rikitrakiapi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
-    

@@ -1,0 +1,21 @@
+{
+  "trackLatLng": [45.523, -122.676],
+  "trackRegionTags": ["Pacific Northwest"],
+  "trackLevel": "Moderate",
+  "trackType": "Hiking",
+  "trackFav": true,
+  "trackGPX": "track123.gpx",
+  "trackName": "Forest Park Trail",
+  "trackDescription": "A scenic trail through Portland’s Forest Park with lush greenery and wildlife.",
+  "hasPhotos": true,
+  "trackGPXBlob": "FAKEGPXDATASTRING",
+  "trackPhotos": [
+    {
+      "picName": "forest1.jpg",
+      "picThumb": "forest1-thumb.jpg",
+      "picLatLng": [45.524, -122.678],
+      "picCaption": "Trailhead entrance",
+      "picThumbDataUrl": "data:image/jpeg;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+  ]
+}

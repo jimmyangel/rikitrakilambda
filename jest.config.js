@@ -1,10 +1,10 @@
 export default {
-  testEnvironment: "node",
+  testEnvironment: 'node',
   transform: {
-    "^.+\\.m?js$": "babel-jest"
+    '^.+\\.m?js$': 'babel-jest'
   },
-  roots: ["<rootDir>/tests"],
-  moduleFileExtensions: ["js", "mjs"],
-  // 👇 This is the key addition
-  moduleDirectories: ["node_modules", "functions/node_modules"]
+  roots: ['<rootDir>/tests'],
+  moduleFileExtensions: ['js', 'mjs'],
+  moduleDirectories: ['node_modules', 'functions/node_modules'],
+  transformIgnorePatterns: ['/node_modules/(?!nanoid)']
 }

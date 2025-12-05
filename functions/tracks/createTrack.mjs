@@ -20,6 +20,7 @@ export const handler = async (event, context) => {
     } catch (err) {
       return {
         statusCode: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'InvalidBody' })
       }
     }
@@ -35,7 +36,7 @@ export const handler = async (event, context) => {
     if (!valid) {
       return {
         statusCode: 400,
-        headers: corsHeaders,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'InvalidInput', description: errors })
       }
     }
@@ -158,14 +159,14 @@ export const handler = async (event, context) => {
 
     return {
       statusCode: 201,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({ trackId })
     }
   } catch (err) {
     logger.error(messages.ERROR_DB_TRACK, { err: { message: err.message } }, context)
     return {
       statusCode: 507,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'DatabaseInsertError', description: err.message })
     }
   }

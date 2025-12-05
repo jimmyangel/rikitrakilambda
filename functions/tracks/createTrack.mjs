@@ -158,7 +158,7 @@ export const handler = async (event, context) => {
 
     return {
       statusCode: 201,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({ trackId })
     }
   } catch (err) {

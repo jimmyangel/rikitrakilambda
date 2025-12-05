@@ -8,16 +8,21 @@ Resources:
     Properties:
       StageName: Prod
       CorsConfiguration:
-        AllowMethods:
-          - GET
-          - POST
-          - PUT
-          - OPTIONS
-        AllowHeaders:
-          - Content-Type
-          - Authorization
-        AllowOrigins:
-          - "*"
+        AllowMethods: [GET, POST, PUT, OPTIONS]
+        AllowHeaders: [Content-Type, Authorization]
+        AllowOrigins: ["*"]
+
+  AllowS3PutAllPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: "Allow Lambda functions to put objects in rikitraki bucket"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: arn:aws:s3:::rikitraki/*
 
   getTracksFunction:
     Type: AWS::Serverless::Function
@@ -297,8 +302,7 @@ Resources:
         Variables:
           TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
-          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
-          MAILGUN_API_KEY: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
       Events:
         ApiEvent:
           Type: HttpApi
@@ -382,7 +386,7 @@ Resources:
             Path: /users/{username}/activation
             Method: put
             ApiId: !Ref rikitrakiapi
-  
+
   createTrackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -395,6 +399,7 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
+        - !Ref AllowS3PutAllPolicy
       Environment:
         Variables:
           TABLE_NAME: rikitrakidyn

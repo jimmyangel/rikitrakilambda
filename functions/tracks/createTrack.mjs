@@ -71,7 +71,7 @@ export const handler = async (event, context) => {
       Put: {
         TableName: process.env.TABLE_NAME,
         Item: {
-          PK: `TRACKS#${trackId}`,
+          PK: `TRACK#${trackId}`,
           SK: 'METADATA',
           trackId,
           username,
@@ -113,7 +113,7 @@ export const handler = async (event, context) => {
           Put: {
             TableName: process.env.TABLE_NAME,
             Item: {
-              PK: `TRACKS#${trackId}`,
+              PK: `TRACK#${trackId}`,
               SK: `PHOTO#${i}`,
               photoIndex: photo.photoIndex,
               picName: photo.picName,
@@ -134,7 +134,7 @@ export const handler = async (event, context) => {
         Put: {
           TableName: process.env.TABLE_NAME,
           Item: {
-            PK: `TRACKS#${trackId}`,
+            PK: `TRACK#${trackId}`,
             SK: `REGION#${i}#${tag}`,
             trackId,
             trackRegionTag: tag,

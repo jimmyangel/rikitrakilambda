@@ -24,7 +24,7 @@ jest.mock('@aws-sdk/client-s3', () => {
   }
 })
 
-import { __sendMock as s3SendMock } from '@aws-sdk/client-s3'
+import { __sendMock as s3SendMock, PutObjectCommand } from '@aws-sdk/client-s3'
 
 let ddbSpy, jwtSpy, s3Spy
 
@@ -56,7 +56,7 @@ describe('createTrack handler', () => {
     expect(JSON.parse(response.body).error).toBe('InvalidBody')
   })
 
-  it('returns 201 and generates a trackId when track is created successfully', async () => {
+  it('uploads GPX blob to S3 and returns 201 when track is created successfully', async () => {
     jwtSpy.mockReturnValue({ sub: 'ricardo' })
     ddbSpy.mockResolvedValue({}) // fake Dynamo success
     s3Spy.mockResolvedValue({})  // fake S3 success
@@ -72,5 +72,10 @@ describe('createTrack handler', () => {
     const body = JSON.parse(response.body)
     expect(body.trackId).toBeDefined()
     expect(typeof body.trackId).toBe('string')
+
+    // ensure S3 was called for GPX upload
+    expect(s3Spy).toHaveBeenCalled()
+    const callArgs = s3Spy.mock.calls[0][0]
+    expect(callArgs).toBeInstanceOf(PutObjectCommand)
   })
 })

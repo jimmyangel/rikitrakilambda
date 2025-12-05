@@ -4,8 +4,8 @@ export function buildTracksQuery(filter, limit = 5000) {
 
   if (filter.username) {
     indexName = 'TracksByUser'
-    keyName = 'username'
-    keyValue = filter.username
+    keyName = 'tracksIndexUserPK'
+    keyValue = `TRACKS#${filter.username}`
   } else if (filter.country || filter.region) {
     const regions = (filter.region || filter.country).split(',').map(s => s.trim())
     indexName = 'TracksByRegion'
@@ -41,6 +41,3 @@ export function buildTracksQuery(filter, limit = 5000) {
     Limit: limit
   }
 }
-
-
-

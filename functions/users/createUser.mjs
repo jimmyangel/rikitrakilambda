@@ -104,7 +104,7 @@ export const handler = async (event, context) => {
             body: JSON.stringify({ username: body.username })
         }
     } catch (err) {
-        logger.error("Database error on user create", { err: { message: err.message } }, context)
+        logger.error(messages.ERROR_DB_USER, { err: { message: err.message } }, context)
         return {
             statusCode: 500,
             headers: corsHeaders,

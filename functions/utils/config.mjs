@@ -15,6 +15,7 @@ export const messages = {
   ERROR_FETCH_GPX: 'Error fetching GPX file',
   ERROR_DB: 'Cannot connect to database',
   ERROR_DB_USER: 'Database error on user create',
+  ERROR_DB_TRACK: 'Database error on track create',
   ERROR_MAILGUN_SEND: 'mailgun send error',
   ERROR_MAILGUN_BUILD: 'mailgun build error',
   WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track',

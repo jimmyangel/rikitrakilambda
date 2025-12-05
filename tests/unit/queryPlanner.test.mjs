@@ -3,7 +3,7 @@ import { buildTracksQuery } from "../../functions/utils/queryPlanner.mjs"
 test("uses TracksByUser index when username filter provided", () => {
   const query = buildTracksQuery({ username: "alice" })
   expect(query.IndexName).toBe("TracksByUser")
-  expect(query.ExpressionAttributeValues[":pk"]).toBe("alice")
+  expect(query.ExpressionAttributeValues[":pk"]).toBe("TRACKS#alice")
 })
 
 test("uses TracksByRegion index when region filter provided", () => {

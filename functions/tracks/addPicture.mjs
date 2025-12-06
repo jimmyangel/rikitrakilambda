@@ -7,12 +7,10 @@ const s3 = new S3Client({})
 // Simple JPEG magic number check
 function isJpeg(buffer) { return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9 }
 
-export async function handler(event) {
+export async function handler(event, context) {
   try {
     const { trackId, picIndex } = event.pathParameters
     const body = Buffer.from(event.body, 'base64')
-
-    logger.info(`add picture for track ${trackId} index ${picIndex} size ${body.length}`)
 
     // Validate size
     if (body.length > 1000000) {
@@ -54,7 +52,7 @@ export async function handler(event) {
       body: JSON.stringify({ trackId, picIndex })
     }
   } catch (err) {
-    logger.error('S3 write error', err.message)
+    logger.error(messages.ERROR_S3, { err: { message: err.message } }, context)
     return {
       statusCode: 507,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

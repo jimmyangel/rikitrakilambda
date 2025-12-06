@@ -116,7 +116,7 @@ export const handler = async (event, context) => {
             Item: {
               PK: `TRACK#${trackId}`,
               SK: `PHOTO#${i}`,
-              photoIndex: photo.photoIndex,
+              photoIndex: i,
               picName: photo.picName,
               picThumb: photo.picThumb,
               picCaption: sanitize(photo.picCaption),

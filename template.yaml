@@ -414,6 +414,32 @@ Resources:
             Method: post
             ApiId: !Ref rikitrakiapi
 
+  addPictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: addPicture
+      CodeUri: functions/
+      Handler: tracks/addPicture.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - !Ref AllowS3PutAllPolicy
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          BUCKET_NAME: rikitraki
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /tracks/{trackId}/picture/{picIndex}
+            Method: post
+            ApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "HTTP API base URL for Prod stage"

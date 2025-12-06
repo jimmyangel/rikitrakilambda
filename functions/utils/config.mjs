@@ -18,6 +18,7 @@ export const messages = {
   ERROR_DB_TRACK: 'Database error on track create',
   ERROR_MAILGUN_SEND: 'mailgun send error',
   ERROR_MAILGUN_BUILD: 'mailgun build error',
+  ERROR_S3: 'S3 error',
   WARN_NO_PHOTOS_FOR_TRACK: 'No photos found for track',
   WARN_ACCT_NOT_ACTIVE: 'account not activated',
   WARN_INVALID_TOKEN: 'Missing or invalid token',
@@ -28,5 +29,6 @@ export const messages = {
   WARN_INVALID_AUTH: 'Missing or invalid auth header',
   WARN_INVALID_PASSWORD: 'Invalid password',
   WARN_NO_DATA: 'No data',
-  WARN_INVALID_INPUT: 'Invalid input'
+  WARN_INVALID_INPUT: 'Invalid input',
+  WARN_PAYLOAD_TOO_LARGE: 'Payload too large'
 }

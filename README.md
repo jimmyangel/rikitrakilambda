@@ -1,7 +1,9 @@
 # RikiTrakiWS (AWS Edition)
 
-This repository contains the code for the web services supporting RikiTraki, an outdoor activities log web application.  
-The public Web Services and database are hosted entirely in **Amazon Web Services (AWS)**.  
+This repository contains the code for the web services supporting RikiTraki, an outdoor activities log web application.
+
+The public Web Services and database are hosted entirely in **Amazon Web Services (AWS)**.
+
 Data is maintained in DynamoDB and S3, with Lambda functions providing a secure, schema‑validated CRUD interface via REST APIs.
 
 ## Hosting & Deployment

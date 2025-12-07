@@ -57,47 +57,16 @@ export const handler = async (event, context) => {
     if (body.trackGPXBlob) {
       const gpxKey = `${trackId}/gpx/${body.trackGPX}`
       await s3.send(new PutObjectCommand({
-        Bucket: process.env.BUCKET_NAME,   // configure this bucket in env
+        Bucket: process.env.BUCKET_NAME,
         Key: gpxKey,
         Body: body.trackGPXBlob,
         ContentType: 'application/gpx+xml'
       }))
     }
 
-    // Transaction items
-    const transactItems = []
-
-    // Track metadata
-    transactItems.push({
-      Put: {
-        TableName: process.env.TABLE_NAME,
-        Item: {
-          PK: `TRACK#${trackId}`,
-          SK: 'METADATA',
-          trackId,
-          username,
-          // isDraft: true, // This is not really needed
-          trackGeoHash,
-          trackLatLng: body.trackLatLng,
-          trackRegionTags: body.trackRegionTags,
-          trackLevel: body.trackLevel,
-          trackType: body.trackType,
-          trackFav: body.trackFav,
-          trackGPX: body.trackGPX,
-          trackName: body.trackName,
-          trackDescription: body.trackDescription,
-          hasPhotos: body.hasPhotos,
-          isDeleted: false,
-          createdDate: new Date().toISOString(),
-          tracksIndexPK: 'TRACKS',
-          tracksIndexUserPK: `TRACKS#${username}`
-        },
-        ConditionExpression: 'attribute_not_exists(PK)'
-      }
-    })
-
-    // Photos
-    if (body.trackPhotos) {
+    // Upload thumbnails to S3 and build trackPhotos array
+    let trackPhotos = []
+    if (Array.isArray(body.trackPhotos)) {
       for (let i = 0; i < body.trackPhotos.length; i++) {
         const photo = body.trackPhotos[i]
         const buffer = Buffer.from(photo.picThumbDataUrl.split(',')[1], 'base64')
@@ -110,25 +79,50 @@ export const handler = async (event, context) => {
           ContentType: 'image/jpeg'
         }))
 
-        transactItems.push({
-          Put: {
-            TableName: process.env.TABLE_NAME,
-            Item: {
-              PK: `TRACK#${trackId}`,
-              SK: `PHOTO#${i}`,
-              photoIndex: i,
-              picName: photo.picName,
-              picThumb: photo.picThumb,
-              picCaption: sanitize(photo.picCaption),
-              createdDate: new Date().toISOString(),
-              ...(photo.picLatLng ? { picLatLng: photo.picLatLng } : {})
-            }
-          }
+        trackPhotos.push({
+          picName: photo.picName,
+          picThumb: photo.picThumb,
+          picCaption: sanitize(photo.picCaption),
+          ...(photo.picLatLng ? { picLatLng: photo.picLatLng } : {}),
+          picIndex: i,
+          createdDate: new Date().toISOString()
         })
       }
     }
 
-    // Region tags
+    // Transaction items
+    const transactItems = []
+
+    // Track metadata (with embedded trackPhotos)
+    transactItems.push({
+      Put: {
+        TableName: process.env.TABLE_NAME,
+        Item: {
+          PK: `TRACK#${trackId}`,
+          SK: 'METADATA',
+          trackId,
+          username,
+          trackGeoHash,
+          trackLatLng: body.trackLatLng,
+          trackRegionTags: body.trackRegionTags,
+          trackLevel: body.trackLevel,
+          trackType: body.trackType,
+          trackFav: body.trackFav,
+          trackGPX: body.trackGPX,
+          trackName: body.trackName,
+          trackDescription: body.trackDescription,
+          hasPhotos: Array.isArray(trackPhotos) && trackPhotos.length > 0,
+          trackPhotos, // embedded array
+          isDeleted: false,
+          createdDate: new Date().toISOString(),
+          tracksIndexPK: 'TRACKS',
+          tracksIndexUserPK: `TRACKS#${username}`
+        },
+        ConditionExpression: 'attribute_not_exists(PK)'
+      }
+    })
+
+    // Region tags (still separate items for search)
     for (let i = 0; i < body.trackRegionTags.length; i++) {
       const tag = body.trackRegionTags[i]
       transactItems.push({

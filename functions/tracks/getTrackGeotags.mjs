@@ -1,8 +1,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 import { corsHeaders, messages } from "../utils/config.mjs"
-import  *  as logger from "../utils/logger.mjs"
+import * as logger from "../utils/logger.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const s3 = new S3Client({})
@@ -18,17 +18,14 @@ export const handler = async (event, context) => {
       }
     }
 
-    // Query DynamoDB for all photo items for this track
-    const result = await ddb.send(new QueryCommand({
+    // Fetch METADATA item for this track
+    const result = await ddb.send(new GetCommand({
       TableName: process.env.TABLE_NAME,
-      KeyConditionExpression: "PK = :pk AND begins_with(SK, :skprefix)",
-      ExpressionAttributeValues: {
-        ":pk": `TRACK#${trackId}`,
-        ":skprefix": "PHOTO#"
-      }
+      Key: { PK: `TRACK#${trackId}`, SK: "METADATA" }
     }))
 
-    if (!result.Items || result.Items.length === 0) {
+    const metadata = result.Item
+    if (!metadata || !Array.isArray(metadata.trackPhotos) || metadata.trackPhotos.length === 0) {
       return {
         statusCode: 404,
         headers: corsHeaders,
@@ -36,26 +33,32 @@ export const handler = async (event, context) => {
       }
     }
 
-    // Build trackPhotos array
+    // Build trackPhotos array with S3 blobs
     const trackPhotos = await Promise.all(
-      result.Items.map(async (item) => {
-        const { photoIndex, picCaption, picLatLng, picIndex, picName, picThumb } = item
+      metadata.trackPhotos.map(async (p, idx) => {
+        const { picCaption, picLatLng, picName, picThumb } = p
 
-        // Fetch thumbnail blob from S3
-        const s3Key = `${trackId}/thumbnails/${photoIndex}.jpg`
-        const s3Resp = await s3.send(new GetObjectCommand({
-          Bucket: "rikitraki",
-          Key: s3Key
-        }))
-        const blob = await streamToBase64(s3Resp.Body)
+        // Thumbnail key always matches array position
+        const s3Key = `${trackId}/thumbnails/${idx}.jpg`
+
+        let blob
+        try {
+          const s3Resp = await s3.send(new GetObjectCommand({
+            Bucket: "rikitraki",
+            Key: s3Key
+          }))
+          blob = await streamToBase64(s3Resp.Body)
+        } catch {
+          blob = null // gracefully handle missing thumbnail
+        }
 
         return {
-          picName: picName,
-          picThumb: picThumb,
-          picCaption: picCaption,
-          picLatLng: picLatLng,
-          picIndex: picIndex,
-          picThumbBlob: blob
+          picName,
+          picThumb,
+          picCaption,
+          picLatLng,
+          picThumbBlob: blob,
+          ...(p.picIndex !== undefined && { picIndex: p.picIndex })
         }
       })
     )
@@ -65,13 +68,13 @@ export const handler = async (event, context) => {
       headers: corsHeaders,
       body: JSON.stringify({
         geoTags: {
-          trackId: trackId,
-          trackPhotos: trackPhotos
+          trackId,
+          trackPhotos
         }
       })
     }
   } catch (err) {
-    logger.error(messages.ERROR_FETCH_GEOTAGS, { err: { message: err.message } }, context)    
+    logger.error(messages.ERROR_FETCH_GEOTAGS, { err: { message: err.message } }, context)
     return {
       statusCode: 500,
       headers: corsHeaders,

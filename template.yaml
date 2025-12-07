@@ -8,7 +8,7 @@ Resources:
     Properties:
       StageName: Prod
       CorsConfiguration:
-        AllowMethods: [GET, POST, PUT, OPTIONS]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
         AllowHeaders: [Content-Type, Authorization]
         AllowOrigins: ["*"]
 
@@ -22,6 +22,18 @@ Resources:
           - Effect: Allow
             Action:
               - s3:PutObject
+            Resource: arn:aws:s3:::rikitraki/*
+
+  AllowS3DeleteAllPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: "Allow Lambda functions to delete objects in rikitraki bucket"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:DeleteObject
             Resource: arn:aws:s3:::rikitraki/*
 
   getTracksFunction:
@@ -465,6 +477,32 @@ Resources:
           Properties:
             Path: /tracks/{trackId}/picture/{picIndex}
             Method: post
+            ApiId: !Ref rikitrakiapi
+
+  deletePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deletePicture
+      CodeUri: functions/
+      Handler: tracks/deletePicture.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - !Ref AllowS3DeleteAllPolicy
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          BUCKET_NAME: rikitraki
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /tracks/{trackId}/picture/{picIndex}
+            Method: delete
             ApiId: !Ref rikitrakiapi
 
 Outputs:

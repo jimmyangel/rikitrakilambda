@@ -1,7 +1,7 @@
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type,Authorization,Origin,Accept",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT"
+  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
 }
 
 export const messages = {
@@ -10,6 +10,7 @@ export const messages = {
   ERROR_INTERNAL: 'Internal server error',
   ERROR_COUNT_TRACKS: 'Failed to count tracks',
   ERROR_FETCH_PIC: 'Error fetching picture',
+  ERROR_DELETE_PIC: 'Error deleting picture',
   ERROR_FETCH_THUMB: 'Error fetching thumbnail',
   ERROR_FETCH_GEOTAGS: 'Error in fetching track geotags',
   ERROR_FETCH_GPX: 'Error fetching GPX file',

@@ -505,6 +505,34 @@ Resources:
             Method: delete
             ApiId: !Ref rikitrakiapi
 
+  deleteTrackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deleteTrack
+      CodeUri: functions/
+      Handler: tracks/deleteTrack.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3ReadOnlyAccess
+        - !Ref AllowS3DeleteAllPolicy
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          BUCKET_NAME: rikitraki
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /tracks/{trackId}
+            Method: delete
+            ApiId: !Ref rikitrakiapi
+
 Outputs:
   ApiGatewayBaseUrl:
     Description: "HTTP API base URL for Prod stage"

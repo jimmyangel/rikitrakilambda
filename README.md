@@ -75,7 +75,7 @@ npm install
 npm test
 ```
 
-Tests are written with Jest and mock AWS SDK clients for deterministic results. Each handler has a corresponding *.test.mjs file under '''tests/unit'''.
+Tests are written with Jest and mock AWS SDK clients for deterministic results. Each handler has a corresponding ```*.test.mjs file``` under ```tests/unit```.
 
 ---
 *This project was developed with the assistance of Microsoft Copilot.*

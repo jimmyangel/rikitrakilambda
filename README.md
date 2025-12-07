@@ -25,7 +25,7 @@ Environment variables required by Lambda handlers:
 - `BUCKET_NAME` – S3 bucket for GPX and images.
 - `JWT_SECRET` – Secret for signing and verifying JWT tokens (stored in SSM).
 - `JWT_ISSUER` – Issuer string for JWT tokens.
-- `MAILGUN_API_KEY` – Used for user creation and reset flows.
+- `MAILGUN_API_KEY` – Used for user creation and reset flows (stored in SSM).
 
 All handlers are tested with deterministic Jest suites and validated against JSON schemas.
 

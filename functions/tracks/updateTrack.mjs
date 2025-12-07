@@ -84,8 +84,12 @@ export const handler = async (event, context) => {
           picName: photo.picName,
           picThumb: photo.picThumb,
           picCaption: sanitize(photo.picCaption),
-          picIndex: i
         }
+        
+        if (photo.picIndex != null) {
+            entry.picIndex = photo.picIndex
+        }
+
         if (Array.isArray(photo.picLatLng)) entry.picLatLng = photo.picLatLng
         if (photo.createdDate) entry.createdDate = photo.createdDate
         incomingPhotos.push(entry)

@@ -34,7 +34,7 @@ URL Format:
 Example: `https://<api-id>.execute-api.us-west-2.amazonaws.com/Prod/tracks`
 
 All results are JSON except images and GPX files.  
-SSL is required on all authenticated/authorized calls.
+**SSL is required for all calls.**
 
 **Resources**
 
@@ -73,3 +73,9 @@ To run the test suite locally:
 ```bash
 npm install
 npm test
+```
+
+Tests are written with Jest and mock AWS SDK clients for deterministic results. Each handler has a corresponding *.test.mjs file under '''tests/unit'''.
+
+---
+*This project was developed with the assistance of Microsoft Copilot.*

@@ -414,6 +414,33 @@ Resources:
             Method: post
             ApiId: !Ref rikitrakiapi
 
+  updateTrackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateTrack
+      CodeUri: functions/
+      Handler: tracks/updateTrack.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - !Ref AllowS3PutAllPolicy
+      Environment:
+        Variables:
+          TABLE_NAME: rikitrakidyn
+          BUCKET_NAME: rikitraki
+          JWT_ISSUER: "rikitraki.com"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /tracks/{trackId}
+            Method: put
+            ApiId: !Ref rikitrakiapi
+
   addPictureFunction:
     Type: AWS::Serverless::Function
     Properties:

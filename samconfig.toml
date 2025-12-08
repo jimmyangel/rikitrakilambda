@@ -2,7 +2,7 @@ version = 0.1
 
 [default.deploy.parameters]
 stack_name = "rikitrakilambda"
-resolve_s3 = true
+s3_bucket = "rikitraki-sam-artifacts" 
 s3_prefix = "rikitrakilambda"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"

@@ -1,4 +1,4 @@
-# RikiTrakiWS (AWS Edition)
+# RikiTrakiLambda (RikiTrakiWS AWS Edition)
 
 This repository contains the code for the web services supporting RikiTraki, an outdoor activities log web application.
 
@@ -8,8 +8,18 @@ Data is maintained in DynamoDB and S3, with Lambda functions providing a secure,
 
 ## Hosting & Deployment
 
-Unlike the legacy version, this project is **not intended for self‑hosting**.  
-All infrastructure is provisioned in AWS using [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/) and follows least‑privilege IAM policies.
+Unlike the legacy version, this project is **not intended for self‑hosting**.
+
+All infrastructure is provisioned in AWS using [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/) and follows least‑privilege IAM policies.  
+
+The project is focused on a managed service model, though the open templates make self‑hosting technically possible if desired.
+
+## System Architecture
+
+![System Architecture](https://www.plantuml.com/plantuml/png/JP7FJW8n4CRlVOe9T-A1cmV3uaOaWKXO3EUXEsXZsrdROSbgJ7m5Nz4dSNR1wAcTx_TDvq-dMJ39CNWZJZn1rMMX02Krdhj0KU2XfTGwEXc3LZZ1hNSg6nEv9XWLkmeAQ_aOPGJl1k0YhnSmHw4JTYF031hF_w3cB37iQnpOibZDoa9fZO9xpEeekuY1ozd0otAcyC2-fgJ90TyuGZNfcHxcmvXpIp0Utmo5u1hkjzjr1HjwFL8MCuXABwMKBsBBBsJEyO2qYkeRmlfgbvmGh4Ymx-Y_gPgevr5Newux4lkihjfXlmpDsBC81-33xqYBOWKDUsSTPQ1uu6G9F66Mxy-l9hdMUNeYWpPnpe3UW-NGSDHXig5OG_-iCLEzwW_z0000)
+
+
+## System Building Blocks
 
 Key components:
 - **AWS Lambda**: Stateless handlers for tracks, users, authentication, and media.
@@ -78,6 +88,10 @@ npm test
 ```
 
 Tests are written with Jest and mock AWS SDK clients for deterministic results. Each handler has a corresponding ```*.test.mjs file``` under ```tests/unit```.
+
+## Contributing
+
+Developers interested in contributing are welcome to use their own AWS dev accounts to test and validate changes. These accounts are not managed by the project maintainers. All contributions should be submitted via pull requests, which will be reviewed for alignment with project standards before merging.
 
 ---
 *This project was developed with the assistance of Microsoft Copilot.*

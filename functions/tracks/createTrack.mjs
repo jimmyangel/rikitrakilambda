@@ -159,7 +159,7 @@ export const handler = async (event, context) => {
   } catch (err) {
     logger.error(messages.ERROR_DB_TRACK, { err: { message: err.message } }, context)
     return {
-      statusCode: 507,
+      statusCode: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'DatabaseInsertError', description: err.message })
     }

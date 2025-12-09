@@ -61,15 +61,15 @@ All results are JSON except images and GPX files.
 | `/users/{username}/activation` | PUT | Activates a user account. Requires valid JWT. | 204&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>401&nbsp;Unauthorized<br>403&nbsp;Token&nbsp;mismatch<br>404&nbsp;User&nbsp;not&nbsp;found<br>500&nbsp;Server&nbsp;error | `activateAccount` |
 | `/tracks` | GET | Returns the latest MAX_TRACKS (limit 5000). | 200&nbsp;Success<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `getTracks` |
 | `/tracks/number` | GET | Returns the total number of tracks. | 200&nbsp;Success<br>500&nbsp;Server&nbsp;error | `getNumberOfTracks` |
-| `/tracks` | POST | Creates a new track. Requires valid JWT. Returns trackId. | 201&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>401&nbsp;Unauthorized<br>507&nbsp;Database&nbsp;error | `createTrack` |
+| `/tracks` | POST | Creates a new track. Requires valid JWT. Returns trackId. | 201&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>401&nbsp;Unauthorized<br>500&nbsp;Server&nbsp;error | `createTrack` |
 | `/tracks/{trackId}` | GET | Returns a single track. | 200&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `getTrack` |
-| `/tracks/{trackId}` | PUT | Updates track info. Requires valid JWT. | 200&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>401&nbsp;Unauthorized<br>404&nbsp;Not&nbsp;found<br>507&nbsp;Database&nbsp;error | `updateTrack` |
+| `/tracks/{trackId}` | PUT | Updates track info. Requires valid JWT. | 200&nbsp;Success<br>400&nbsp;Invalid&nbsp;input<br>401&nbsp;Unauthorized<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `updateTrack` |
 | `/tracks/{trackId}` | DELETE | Deletes track and associated images. Requires valid JWT. | 204&nbsp;Success<br>401&nbsp;Unauthorized<br>403&nbsp;Forbidden<br>500&nbsp;Server&nbsp;error | `deleteTrack` |
 | `/tracks/{trackId}/GPX` | GET | Returns GPX file in application/gpx+xml. | 200&nbsp;Success<br>404&nbsp;Not&nbsp;found | `getTrackGPX` |
 | `/tracks/{trackId}/geotags` | GET | Returns photo geotags for a track. | 200&nbsp;Success<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `getTrackGeotags` |
 | `/tracks/{trackId}/thumbnail/{picIndex}` | GET | Returns thumbnail image (JPEG). | 200&nbsp;Success<br>404&nbsp;Not&nbsp;found | `getThumbnail` |
 | `/tracks/{trackId}/picture/{picIndex}` | GET | Returns full‑resolution picture (JPEG). | 200&nbsp;Success<br>404&nbsp;Not&nbsp;found | `getPicture` |
-| `/tracks/{trackId}/picture/{picIndex}` | POST | Uploads a picture (JPEG). Requires valid JWT. | 201&nbsp;Success<br>401&nbsp;Unauthorized<br>413&nbsp;Too&nbsp;large<br>507&nbsp;Database&nbsp;error | `addPicture` |
+| `/tracks/{trackId}/picture/{picIndex}` | POST | Uploads a picture (JPEG). Requires valid JWT. | 201&nbsp;Success<br>401&nbsp;Unauthorized<br>413&nbsp;Too&nbsp;large<br>500&nbsp;Server&nbsp;error | `addPicture` |
 | `/tracks/{trackId}/picture/{picIndex}` | DELETE | Deletes a picture. Requires valid JWT. | 204&nbsp;Success<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `deletePicture` |
 | `/motd` | GET | Returns the five most recent tracks with pictures. | 200&nbsp;Success<br>500&nbsp;Server&nbsp;error | `getMotd` |
 

@@ -2,6 +2,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM project for rikitraki back end Lambdas
 
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    CodeUri: functions/
+    MemorySize: 1024
+    Timeout: 10
+    Environment:
+      Variables:
+        TABLE_NAME: rikitrakidyn
+        BUCKET_NAME: rikitraki
+    Tags:
+      Project: rikitraki
+
 Resources:
   rikitrakiapi:
     Type: AWS::Serverless::HttpApi
@@ -20,8 +33,7 @@ Resources:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Action:
-              - s3:PutObject
+            Action: [s3:PutObject]
             Resource: arn:aws:s3:::rikitraki/*
 
   AllowS3DeleteAllPolicy:
@@ -32,8 +44,7 @@ Resources:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Action:
-              - s3:DeleteObject
+            Action: [s3:DeleteObject]
             Resource: arn:aws:s3:::rikitraki/*
 
   getTracksFunction:
@@ -41,16 +52,12 @@ Resources:
     Properties:
       FunctionName: getTracks
       Handler: tracks/getTracks.handler
-      Runtime: nodejs22.x
-      CodeUri: functions/
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns all tracks"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
@@ -65,16 +72,12 @@ Resources:
     Properties:
       FunctionName: getNumberOfTracks
       Handler: tracks/getNumberOfTracks.handler
-      Runtime: nodejs22.x
-      CodeUri: functions/
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns the number of tracks"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
@@ -89,16 +92,10 @@ Resources:
     Properties:
       FunctionName: getTrack
       Handler: tracks/getTrack.handler
-      Runtime: nodejs22.x
-      CodeUri: functions/
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns a single track"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
-      Environment:
-        Variables:
-          TABLE_NAME: rikitrakidyn
       Events:
         ApiEvent:
           Type: HttpApi
@@ -111,17 +108,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getMotd
-      CodeUri: functions/
       Handler: tracks/getMotd.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns message of the day"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           INDEX_NAME: TracksByDate
       Events:
         ApiEvent:
@@ -135,17 +128,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getThumbnail
-      CodeUri: functions/
       Handler: tracks/getThumbnail.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns thumbnail image"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonS3ReadOnlyAccess
-      Environment:
-        Variables:
-          BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
           Type: HttpApi
@@ -158,17 +145,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getPicture
-      CodeUri: functions/
       Handler: tracks/getPicture.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns full picture"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonS3ReadOnlyAccess
-      Environment:
-        Variables:
-          BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
           Type: HttpApi
@@ -181,17 +162,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTrackGPX
-      CodeUri: functions/
       Handler: tracks/getTrackGPX.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns GPX file"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonS3ReadOnlyAccess
-      Environment:
-        Variables:
-          BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
           Type: HttpApi
@@ -204,19 +179,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getTrackGeotags
-      CodeUri: functions/
       Handler: tracks/getTrackGeotags.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns geotags for a track"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
         - AmazonS3ReadOnlyAccess
-      Environment:
-        Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
       Events:
         ApiEvent:
           Type: HttpApi
@@ -229,17 +197,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getToken
-      CodeUri: functions/
       Handler: users/getToken.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Issues JWT token"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -254,17 +218,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getUserInfo
-      CodeUri: functions/
       Handler: users/getUserInfo.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Returns user info"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -279,17 +239,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: updateUserProfile
-      CodeUri: functions/
       Handler: users/updateUserProfile.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Updates user profile"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
-      Environment:
-        Variables:
-          TABLE_NAME: rikitrakidyn
       Events:
         ApiEvent:
           Type: HttpApi
@@ -302,17 +256,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: getResetToken
-      CodeUri: functions/
       Handler: users/getResetToken.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Issues reset token"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
       Events:
@@ -327,17 +277,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: resetPassword
-      CodeUri: functions/
       Handler: users/resetPassword.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Resets user password"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -352,17 +298,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: createUser
-      CodeUri: functions/
       Handler: users/createUser.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Creates a new user"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
           MAILGUN_API_KEY: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
@@ -378,17 +320,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: activateAccount
-      CodeUri: functions/
       Handler: users/activateAccount.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Activates user account"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -403,19 +341,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: createTrack
-      CodeUri: functions/
       Handler: tracks/createTrack.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Creates a new track and uploads initial assets"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
         - !Ref AllowS3PutAllPolicy
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -430,19 +363,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: updateTrack
-      CodeUri: functions/
       Handler: tracks/updateTrack.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Updates track metadata and assets"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
         - !Ref AllowS3PutAllPolicy
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -457,19 +385,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: addPicture
-      CodeUri: functions/
       Handler: tracks/addPicture.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Adds a picture to a track"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBReadOnlyAccess
         - !Ref AllowS3PutAllPolicy
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -484,18 +407,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: deletePicture
-      CodeUri: functions/
       Handler: tracks/deletePicture.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Deletes a picture from a track"
       Policies:
         - AWSLambdaBasicExecutionRole
         - !Ref AllowS3DeleteAllPolicy
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:
@@ -510,11 +428,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: deleteTrack
-      CodeUri: functions/
       Handler: tracks/deleteTrack.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 10
+      Description: "Deletes a track and related assets"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
@@ -522,8 +437,6 @@ Resources:
         - !Ref AllowS3DeleteAllPolicy
       Environment:
         Variables:
-          TABLE_NAME: rikitrakidyn
-          BUCKET_NAME: rikitraki
           JWT_ISSUER: "rikitraki.com"
           JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
       Events:

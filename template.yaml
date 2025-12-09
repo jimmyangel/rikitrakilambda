@@ -464,6 +464,7 @@ Resources:
       Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
         - !Ref AllowS3PutAllPolicy
       Environment:
         Variables:

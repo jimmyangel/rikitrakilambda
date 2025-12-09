@@ -1,8 +1,10 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb'
 import * as logger from '../utils/logger.mjs'
 import { corsHeaders, messages } from '../utils/config.mjs'
 
 const s3 = new S3Client({})
+const ddb = new DynamoDBClient({})
 
 // Simple JPEG magic number check
 function isJpeg(buffer) { return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9 }
@@ -36,6 +38,26 @@ export async function handler(event, context) {
       }
     }
 
+    // Check if trackId exists in DynamoDB
+    const track = await ddb.send(new GetItemCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: {
+            PK: { S: `TRACK#${trackId}` },
+            SK: { S: 'METADATA' }
+        }
+    }))
+
+    if (!track.Item) {
+      return {
+        statusCode: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: messages.WARN_INVALID_INPUT,
+          description: `Track ${trackId} not found`
+        })
+      }
+    }
+
     // Construct S3 key
     const key = `${trackId}/pictures/${picIndex}.jpg`
 
@@ -54,7 +76,7 @@ export async function handler(event, context) {
   } catch (err) {
     logger.error(messages.ERROR_S3, { err: { message: err.message } }, context)
     return {
-      statusCode: 507,
+      statusCode: 500, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         error: messages.ERROR_S3,

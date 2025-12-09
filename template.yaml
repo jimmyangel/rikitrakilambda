@@ -50,7 +50,7 @@ Resources:
   getTracksFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getTracks
+      FunctionName: rikitraki-getTracks
       Handler: tracks/getTracks.handler
       Description: "Returns all tracks"
       Policies:
@@ -70,7 +70,7 @@ Resources:
   getNumberOfTracksFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getNumberOfTracks
+      FunctionName: rikitraki-getNumberOfTracks
       Handler: tracks/getNumberOfTracks.handler
       Description: "Returns the number of tracks"
       Policies:
@@ -90,7 +90,7 @@ Resources:
   getTrackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getTrack
+      FunctionName: rikitraki-getTrack
       Handler: tracks/getTrack.handler
       Description: "Returns a single track"
       Policies:
@@ -107,7 +107,7 @@ Resources:
   getMotdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getMotd
+      FunctionName: rikitraki-getMotd
       Handler: tracks/getMotd.handler
       Description: "Returns message of the day"
       Policies:
@@ -127,7 +127,7 @@ Resources:
   getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getThumbnail
+      FunctionName: rikitraki-getThumbnail
       Handler: tracks/getThumbnail.handler
       Description: "Returns thumbnail image"
       Policies:
@@ -144,7 +144,7 @@ Resources:
   getPictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getPicture
+      FunctionName: rikitraki-getPicture
       Handler: tracks/getPicture.handler
       Description: "Returns full picture"
       Policies:
@@ -161,7 +161,7 @@ Resources:
   getTrackGPXFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getTrackGPX
+      FunctionName: rikitraki-getTrackGPX
       Handler: tracks/getTrackGPX.handler
       Description: "Returns GPX file"
       Policies:
@@ -178,7 +178,7 @@ Resources:
   getTrackGeotagsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getTrackGeotags
+      FunctionName: rikitraki-getTrackGeotags
       Handler: tracks/getTrackGeotags.handler
       Description: "Returns geotags for a track"
       Policies:
@@ -196,7 +196,7 @@ Resources:
   getTokenFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getToken
+      FunctionName: rikitraki-getToken
       Handler: users/getToken.handler
       Description: "Issues JWT token"
       Policies:
@@ -217,7 +217,7 @@ Resources:
   getUserInfoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getUserInfo
+      FunctionName: rikitraki-getUserInfo
       Handler: users/getUserInfo.handler
       Description: "Returns user info"
       Policies:
@@ -238,7 +238,7 @@ Resources:
   updateUserProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: updateUserProfile
+      FunctionName: rikitraki-updateUserProfile
       Handler: users/updateUserProfile.handler
       Description: "Updates user profile"
       Policies:
@@ -255,7 +255,7 @@ Resources:
   getResetTokenFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getResetToken
+      FunctionName: rikitraki-getResetToken
       Handler: users/getResetToken.handler
       Description: "Issues reset token"
       Policies:
@@ -276,7 +276,7 @@ Resources:
   resetPasswordFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: resetPassword
+      FunctionName: rikitraki-resetPassword
       Handler: users/resetPassword.handler
       Description: "Resets user password"
       Policies:
@@ -297,7 +297,7 @@ Resources:
   createUserFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: createUser
+      FunctionName: rikitraki-createUser
       Handler: users/createUser.handler
       Description: "Creates a new user"
       Policies:
@@ -319,7 +319,7 @@ Resources:
   activateAccountFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: activateAccount
+      FunctionName: rikitraki-activateAccount
       Handler: users/activateAccount.handler
       Description: "Activates user account"
       Policies:
@@ -340,7 +340,7 @@ Resources:
   createTrackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: createTrack
+      FunctionName: rikitraki-createTrack
       Handler: tracks/createTrack.handler
       Description: "Creates a new track and uploads initial assets"
       Policies:
@@ -362,7 +362,7 @@ Resources:
   updateTrackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: updateTrack
+      FunctionName: rikitraki-updateTrack
       Handler: tracks/updateTrack.handler
       Description: "Updates track metadata and assets"
       Policies:
@@ -384,7 +384,7 @@ Resources:
   addPictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: addPicture
+      FunctionName: rikitraki-addPicture
       Handler: tracks/addPicture.handler
       Description: "Adds a picture to a track"
       Policies:
@@ -406,7 +406,7 @@ Resources:
   deletePictureFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: deletePicture
+      FunctionName: rikitraki-deletePicture
       Handler: tracks/deletePicture.handler
       Description: "Deletes a picture from a track"
       Policies:
@@ -427,7 +427,7 @@ Resources:
   deleteTrackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: deleteTrack
+      FunctionName: rikitraki-deleteTrack
       Handler: tracks/deleteTrack.handler
       Description: "Deletes a track and related assets"
       Policies:

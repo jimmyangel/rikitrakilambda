@@ -369,6 +369,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AmazonDynamoDBFullAccess
         - !Ref AllowS3PutAllPolicy
+        - !Ref AllowS3DeleteAllPolicy
       Environment:
         Variables:
           JWT_ISSUER: "rikitraki.com"

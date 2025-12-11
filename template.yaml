@@ -264,7 +264,8 @@ Resources:
       Environment:
         Variables:
           JWT_ISSUER: "rikitraki.com"
-          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
+          JWT_SECRET: !Sub "{{resolve:ssm:/rikitrakiapi/JWT_SECRET}}"
+          MAILGUN_API_KEY: !Sub "{{resolve:ssm:/rikitrakiapi/MAILGUN_API_KEY}}"
       Events:
         ApiEvent:
           Type: HttpApi

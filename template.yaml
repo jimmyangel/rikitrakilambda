@@ -67,6 +67,26 @@ Resources:
             Method: get
             ApiId: !Ref rikitrakiapi
 
+  getTracksByLocFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: rikitraki-getTracksByLoc
+      Handler: tracks/getTracksByLoc.handler
+      Description: "Returns tracks near search center"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          INDEX_NAME: TracksByDate
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /loctracks
+            Method: get
+            ApiId: !Ref rikitrakiapi
+
   getNumberOfTracksFunction:
     Type: AWS::Serverless::Function
     Properties:

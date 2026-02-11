@@ -144,6 +144,32 @@ Resources:
             Method: get
             ApiId: !Ref rikitrakiapi
 
+  getUserMotdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: rikitraki-getUserMotd
+      Handler: tracks/getUserMotd.handler
+      Description: "Returns user-specific message of the day"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
+      Environment:
+        Variables:
+          INDEX_NAME: TracksByDate
+      Events:
+        UserMotdRoot:
+          Type: HttpApi
+          Properties:
+            Path: /usermotd
+            Method: get
+            ApiId: !Ref rikitrakiapi
+        UserMotdWithUsername:
+          Type: HttpApi
+          Properties:
+            Path: /usermotd/{username}
+            Method: get
+            ApiId: !Ref rikitrakiapi
+
   getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:

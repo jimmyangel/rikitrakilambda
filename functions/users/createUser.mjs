@@ -31,7 +31,7 @@ export const handler = async (event, context) => {
         // Primary user record (METADATA)
         const userItem = {
             PK: `USER#${body.username}`,
-            SK: `METADATA#${body.username}`,
+            SK: `METADATA`,
             username: body.username,
             email: body.email,
             password: hashedPassword,

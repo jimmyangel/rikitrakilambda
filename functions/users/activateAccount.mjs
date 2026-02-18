@@ -59,7 +59,7 @@ export const handler = async (event, context) => {
     try {
       await ddb.send(new UpdateCommand({
         TableName: TABLE_NAME,
-        Key: { PK: `USER#${username}`, SK: `METADATA#${username}` },
+        Key: { PK: `USER#${username}`, SK: `METADATA` },
         UpdateExpression: 'REMOVE isInactive SET lastUpdatedDate = :now',
         ExpressionAttributeValues: { ':now': nowIso },
         ConditionExpression: 'attribute_exists(PK)'

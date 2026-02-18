@@ -73,6 +73,7 @@ All results are JSON except images and GPX files.
 | `/tracks/{trackId}/picture/{picIndex}` | DELETE | Deletes a picture. Requires valid JWT. | 204&nbsp;Success<br>404&nbsp;Not&nbsp;found<br>500&nbsp;Server&nbsp;error | `deletePicture` |
 | `/motd` | GET | Returns the five most recent tracks with pictures. | 200&nbsp;Success<br>500&nbsp;Server&nbsp;error | `getMotd` |
 | `/loctracks` | GET | Returns tracks near a given location. Accepts lat, lon, and optional username. Computes search radius server‑side and returns up to 200 nearby tracks. If not enough tracks, expands radius to return at least 10 tracks. | 200&nbsp;Success<br>400&nbsp;Bad&nbsp;request<br>500&nbsp;Server&nbsp;error | `getTracksByLoc` |
+| `/usermotd/{username}` | GET | Returns the five most recent tracks with pictures for a given user. If the user name is ommitted then it is equivalent to /motd (global).| 200&nbsp;Success<br>500&nbsp;Server&nbsp;error | `getMotd` |
 
 ---
 

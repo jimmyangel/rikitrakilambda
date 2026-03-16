@@ -1,10 +1,22 @@
 import sanitizeHtml from 'sanitize-html'
 
 export const sanitize = (dirty, restricted) => {
-    if (dirty) {
-        var clean = sanitizeHtml(dirty, restricted ? {allowedTags: [], allowedAttributes: []} : {allowedTags: ['a', 'li'], allowedAttributes: {'a': [ 'href', 'target' ]}});
-        return clean;
-    }
+    // Normalize nullish or non-string values
+    if (dirty === undefined || dirty === null) return ""
+
+    // Coerce everything to string
+    const safe = String(dirty)
+
+    // Sanitize
+    const clean = sanitizeHtml(
+        safe,
+        restricted
+            ? { allowedTags: [], allowedAttributes: [] }
+            : { allowedTags: ['a', 'li'], allowedAttributes: { 'a': ['href', 'target'] } }
+    )
+
+    // Guarantee a string return
+    return clean || ""
 }
 
 export function haversineKm(lat1, lon1, lat2, lon2) {

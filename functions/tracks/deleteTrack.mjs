@@ -28,6 +28,34 @@ export const handler = async (event, context) => {
     }
     const username = jwtResult.sub
 
+    // --- Ownership check ---
+    const metaResp = await ddb.send(new QueryCommand({
+      TableName: process.env.TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND SK = :sk',
+      ExpressionAttributeValues: {
+        ':pk': `TRACK#${trackId}`,
+        ':sk': 'METADATA'
+      }
+    }))
+
+    const meta = metaResp.Items?.[0]
+
+    if (!meta) {
+      return {
+        statusCode: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'TrackNotFound' })
+      }
+    }
+
+    if (meta.username !== username) {
+      return {
+        statusCode: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Forbidden', description: 'You do not own this track.' })
+      }
+    }
+
     // --- Delete S3 objects under this track prefix ---
     const bucket = process.env.BUCKET_NAME
     const listResp = await s3.send(new ListObjectsV2Command({

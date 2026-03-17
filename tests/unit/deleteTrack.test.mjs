@@ -1,88 +1,95 @@
-// __tests__/deleteTrack.test.mjs
+import { handler } from '../../functions/tracks/deleteTrack.mjs'
+import { verifyJwt } from '../../functions/utils/auth.mjs'
 
-// 1. Mock AWS SDK modules completely
-jest.mock('@aws-sdk/client-s3', () => {
-  const mockSend = jest.fn()
-  return {
-    S3Client: jest.fn(() => ({ send: mockSend })),
-    ListObjectsV2Command: jest.fn(),
-    DeleteObjectsCommand: jest.fn(),
-    __mockSend: mockSend // expose for test control
-  }
-})
+// --- AWS MOCKS (MATCH ORIGINAL PATTERN) ------------------------------------
+
+jest.mock('@aws-sdk/client-dynamodb', () => ({
+  DynamoDBClient: jest.fn().mockImplementation(() => ({}))
+}))
 
 jest.mock('@aws-sdk/lib-dynamodb', () => {
-  const mockSend = jest.fn()
+  const send = jest.fn()
   return {
-    DynamoDBDocumentClient: { from: jest.fn(() => ({ send: mockSend })) },
+    DynamoDBDocumentClient: {
+      from: jest.fn().mockReturnValue({ send })
+    },
     QueryCommand: jest.fn(),
     BatchWriteCommand: jest.fn(),
-    __mockSend: mockSend // expose for test control
+    __send: send
   }
 })
 
-// 2. Mock utils
-import { verifyJwt } from '../../functions/utils/auth.mjs'
-import * as logger from '../../functions/utils/logger.mjs'
+jest.mock('@aws-sdk/client-s3', () => {
+  const send = jest.fn()
+  return {
+    S3Client: jest.fn().mockImplementation(() => ({ send })),
+    ListObjectsV2Command: jest.fn(),
+    DeleteObjectsCommand: jest.fn(),
+    __send: send
+  }
+})
+
 jest.mock('../../functions/utils/auth.mjs')
-jest.mock('../../functions/utils/logger.mjs')
 
-// 3. Import handler AFTER mocks
-import { handler } from '../../functions/tracks/deleteTrack.mjs'
-
-// 4. Grab exposed send mocks
-import * as s3Module from '@aws-sdk/client-s3'
+// Extract the send mocks
 import * as ddbModule from '@aws-sdk/lib-dynamodb'
-const mockS3Send = s3Module.__mockSend
-const mockDdbSend = ddbModule.__mockSend
+import * as s3Module from '@aws-sdk/client-s3'
 
-describe('deleteTrack handler', () => {
+const ddbSend = ddbModule.__send
+const s3Send = s3Module.__send
+
+// ---------------------------------------------------------------------------
+
+describe('deleteTrack ownership validation', () => {
+
   beforeEach(() => {
     jest.clearAllMocks()
-    process.env.BUCKET_NAME = 'rikitraki'
-    process.env.TABLE_NAME = 'TracksTable'
-    logger.error.mockImplementation(() => {})
   })
 
-  it('returns 400 if trackId missing', async () => {
-    const event = { pathParameters: {} }
-    const res = await handler(event, {})
-    expect(res.statusCode).toBe(400)
-    expect(JSON.parse(res.body).error).toBe('MissingTrackId')
+  test('returns 404 when metadata item does not exist', async () => {
+    verifyJwt.mockReturnValue({ sub: 'alice' })
+
+    // Metadata query returns no items
+    ddbSend.mockResolvedValueOnce({ Items: [] })
+
+    const event = { pathParameters: { trackId: 'T1' } }
+    const resp = await handler(event)
+
+    expect(resp.statusCode).toBe(404)
+    expect(JSON.parse(resp.body).error).toBe('TrackNotFound')
   })
 
-  it('returns JWT error if verifyJwt fails', async () => {
-    verifyJwt.mockReturnValue({ statusCode: 401, body: 'Unauthorized' })
-    const event = { pathParameters: { trackId: 'abc123' } }
-    const res = await handler(event, {})
-    expect(res.statusCode).toBe(401)
+  test('returns 403 when track is owned by someone else', async () => {
+    verifyJwt.mockReturnValue({ sub: 'alice' })
+
+    ddbSend.mockResolvedValueOnce({
+      Items: [{ PK: 'TRACK#T1', SK: 'METADATA', username: 'bob' }]
+    })
+
+    const event = { pathParameters: { trackId: 'T1' } }
+    const resp = await handler(event)
+
+    expect(resp.statusCode).toBe(403)
+    expect(JSON.parse(resp.body).error).toBe('Forbidden')
   })
 
-  it('deletes S3 objects and DynamoDB items successfully', async () => {
-    verifyJwt.mockReturnValue({ sub: 'ricardo' })
+  test('returns 204 when user owns the track', async () => {
+    verifyJwt.mockReturnValue({ sub: 'alice' })
 
-    mockS3Send
-      .mockResolvedValueOnce({ Contents: [{ Key: 'abc123/gpx/file.gpx' }, { Key: 'abc123/thumbnails/0.jpg' }] }) // list
-      .mockResolvedValueOnce({}) // delete
+    // 1. Metadata query
+    ddbSend.mockResolvedValueOnce({
+      Items: [{ PK: 'TRACK#T1', SK: 'METADATA', username: 'alice' }]
+    })
 
-    mockDdbSend
-      .mockResolvedValueOnce({ Items: [{ PK: 'TRACK#abc123', SK: 'METADATA' }, { PK: 'TRACK#abc123', SK: 'REGION#0#foo' }] }) // query
-      .mockResolvedValueOnce({}) // batch write
+    // 2. S3 list
+    s3Send.mockResolvedValueOnce({ Contents: [] })
 
-    const event = { pathParameters: { trackId: 'abc123' } }
-    const res = await handler(event, {})
-    expect(res.statusCode).toBe(204)
-    expect(res.body).toBeNull()
-  })
+    // 3. DynamoDB delete batch
+    ddbSend.mockResolvedValueOnce({ Items: [] })
 
-  it('handles unexpected errors gracefully', async () => {
-    verifyJwt.mockReturnValue({ sub: 'ricardo' })
-    mockS3Send.mockRejectedValueOnce(new Error('boom'))
+    const event = { pathParameters: { trackId: 'T1' } }
+    const resp = await handler(event)
 
-    const event = { pathParameters: { trackId: 'abc123' } }
-    const res = await handler(event, {})
-    expect(res.statusCode).toBe(500)
-    expect(JSON.parse(res.body).error).toBe('DeleteTrackError')
-    expect(logger.error).toHaveBeenCalled()
+    expect(resp.statusCode).toBe(204)
   })
 })

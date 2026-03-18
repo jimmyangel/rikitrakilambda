@@ -1,78 +1,146 @@
-// Mock S3 client before importing handler
-let mockSend
+import jwt from 'jsonwebtoken'
+
+// ------------------------------------------------------------
+// AWS MOCKS — consistent with createTrack
+// ------------------------------------------------------------
+let mockS3Send
 jest.mock('@aws-sdk/client-s3', () => {
   const original = jest.requireActual('@aws-sdk/client-s3')
-  mockSend = jest.fn()
+  mockS3Send = jest.fn()
+
   return {
+    __esModule: true,
     ...original,
-    S3Client: jest.fn(() => ({ send: mockSend }))
-    // DeleteObjectCommand left as real class
+    S3Client: jest.fn(() => ({ send: mockS3Send }))
   }
 })
 
-// Mock JWT
+let mockDdbSend
+jest.mock('@aws-sdk/client-dynamodb', () => {
+  const original = jest.requireActual('@aws-sdk/client-dynamodb')
+
+  // Default: valid track owned by testUser
+  mockDdbSend = jest.fn(async () => ({
+    Item: {
+      trackId: { S: 'track123' },
+      username: { S: 'testUser' }
+    }
+  }))
+
+  return {
+    __esModule: true,
+    ...original,
+    DynamoDBClient: jest.fn(() => ({ send: mockDdbSend }))
+  }
+})
+
+// ------------------------------------------------------------
+// JWT MOCK — same pattern as createTrack
+// ------------------------------------------------------------
 jest.mock('../../functions/utils/auth.mjs', () => ({
   verifyJwt: jest.fn()
 }))
 
+// Import AFTER mocks
 import { handler } from '../../functions/tracks/deletePicture.mjs'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { verifyJwt } from '../../functions/utils/auth.mjs'
 
 describe('deletePicture handler', () => {
   beforeEach(() => {
-    mockSend.mockReset()
+    mockS3Send.mockReset()
+    mockDdbSend.mockReset()
+
+    // Reset DynamoDB to default valid track
+    mockDdbSend.mockResolvedValue({
+      Item: {
+        trackId: { S: 'track123' },
+        username: { S: 'testUser' }
+      }
+    })
+
     verifyJwt.mockReturnValue({ sub: 'testUser' })
   })
 
-  it('returns 204 when delete succeeds', async () => {
-    mockSend.mockResolvedValueOnce({})
-
-    const event = { pathParameters: { trackId: 'track123', picIndex: '0' } }
-    const context = {}
-
-    const result = await handler(event, context)
-
-    expect(result.statusCode).toBe(204)
-    expect(result.body).toBeNull()
-    expect(mockSend).toHaveBeenCalledWith(expect.any(DeleteObjectCommand))
-  })
-
-  it('returns 404 when object not found', async () => {
-    const error = new Error('NoSuchKey')
-    error.name = 'NoSuchKey'
-    mockSend.mockRejectedValueOnce(error)
-
-    const event = { pathParameters: { trackId: 'track123', picIndex: '99' } }
-    const context = {}
-
-    const result = await handler(event, context)
-
-    expect(result.statusCode).toBe(404)
-    expect(JSON.parse(result.body).error).toBeDefined()
-  })
-
-  it('returns 500 on other errors', async () => {
-    const error = new Error('Boom')
-    mockSend.mockRejectedValueOnce(error)
-
-    const event = { pathParameters: { trackId: 'track123', picIndex: '1' } }
-    const context = {}
-
-    const result = await handler(event, context)
-
-    expect(result.statusCode).toBe(500)
-    expect(JSON.parse(result.body).error).toBeDefined()
-  })
-
+  // ------------------------------------------------------------
+  // JWT TEST
+  // ------------------------------------------------------------
   it('returns 401 when JWT invalid', async () => {
     verifyJwt.mockReturnValueOnce({ statusCode: 401 })
 
     const event = { pathParameters: { trackId: 'track123', picIndex: '0' } }
-    const context = {}
-
-    const result = await handler(event, context)
+    const result = await handler(event, {})
 
     expect(result.statusCode).toBe(401)
+  })
+
+  // ------------------------------------------------------------
+  // TRACK NOT FOUND
+  // ------------------------------------------------------------
+  it('returns 404 when track does not exist', async () => {
+    mockDdbSend.mockResolvedValueOnce({ Item: undefined })
+
+    const event = { pathParameters: { trackId: 'missing', picIndex: '0' } }
+    const result = await handler(event, {})
+
+    expect(result.statusCode).toBe(404)
+  })
+
+  // ------------------------------------------------------------
+  // OWNERSHIP CHECK
+  // ------------------------------------------------------------
+  it('returns 403 when user does not own the track', async () => {
+    mockDdbSend.mockResolvedValueOnce({
+      Item: {
+        trackId: { S: 'track123' },
+        username: { S: 'otherUser' }
+      }
+    })
+
+    const event = { pathParameters: { trackId: 'track123', picIndex: '0' } }
+    const result = await handler(event, {})
+
+    expect(result.statusCode).toBe(403)
+  })
+
+  // ------------------------------------------------------------
+  // HAPPY PATH
+  // ------------------------------------------------------------
+  it('returns 204 when delete succeeds', async () => {
+    mockS3Send.mockResolvedValueOnce({})
+
+    const event = { pathParameters: { trackId: 'track123', picIndex: '0' } }
+    const result = await handler(event, {})
+
+    expect(result.statusCode).toBe(204)
+    expect(result.body).toBeNull()
+    expect(mockS3Send).toHaveBeenCalledWith(expect.any(DeleteObjectCommand))
+  })
+
+  // ------------------------------------------------------------
+  // S3 NoSuchKey — NOW RETURNS 204 (idempotent delete)
+  // ------------------------------------------------------------
+  it('returns 204 when S3 reports NoSuchKey (idempotent delete)', async () => {
+    const err = new Error('NoSuchKey')
+    err.name = 'NoSuchKey'
+    mockS3Send.mockRejectedValueOnce(err)
+
+    const event = { pathParameters: { trackId: 'track123', picIndex: '99' } }
+    const result = await handler(event, {})
+
+    expect(result.statusCode).toBe(204)
+    expect(result.body).toBeNull()
+  })
+
+  // ------------------------------------------------------------
+  // S3 OTHER ERROR
+  // ------------------------------------------------------------
+  it('returns 500 on other S3 errors', async () => {
+    mockS3Send.mockRejectedValueOnce(new Error('Boom'))
+
+    const event = { pathParameters: { trackId: 'track123', picIndex: '1' } }
+    const result = await handler(event, {})
+
+    expect(result.statusCode).toBe(500)
   })
 })

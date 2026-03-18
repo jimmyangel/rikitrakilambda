@@ -459,6 +459,7 @@ Resources:
       Description: "Deletes a picture from a track"
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBReadOnlyAccess
         - !Ref AllowS3DeleteAllPolicy
       Environment:
         Variables:

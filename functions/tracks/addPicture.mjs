@@ -2,16 +2,34 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb'
 import * as logger from '../utils/logger.mjs'
 import { corsHeaders, messages } from '../utils/config.mjs'
+import { verifyJwt } from '../utils/auth.mjs'
 
 const s3 = new S3Client({})
 const ddb = new DynamoDBClient({})
 
 // Simple JPEG magic number check
-function isJpeg(buffer) { return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9 }
+function isJpeg(buffer) {
+  return (
+    buffer[0] === 0xff &&
+    buffer[1] === 0xd8 &&
+    buffer[buffer.length - 2] === 0xff &&
+    buffer[buffer.length - 1] === 0xd9
+  )
+}
 
 export async function handler(event, context) {
   try {
     const { trackId, picIndex } = event.pathParameters
+
+    // ------------------------------------------------------------
+    // JWT VALIDATION
+    // ------------------------------------------------------------
+    const jwtResult = verifyJwt(event)
+    if (jwtResult.statusCode) {
+      return jwtResult   // already formatted error response
+    }
+    const username = jwtResult.sub
+
     const body = Buffer.from(event.body, 'base64')
 
     // Validate size
@@ -38,13 +56,15 @@ export async function handler(event, context) {
       }
     }
 
-    // Check if trackId exists in DynamoDB
+    // ------------------------------------------------------------
+    // TRACK EXISTENCE CHECK
+    // ------------------------------------------------------------
     const track = await ddb.send(new GetItemCommand({
-        TableName: process.env.TABLE_NAME,
-        Key: {
-            PK: { S: `TRACK#${trackId}` },
-            SK: { S: 'METADATA' }
-        }
+      TableName: process.env.TABLE_NAME,
+      Key: {
+        PK: { S: `TRACK#${trackId}` },
+        SK: { S: 'METADATA' }
+      }
     }))
 
     if (!track.Item) {
@@ -58,7 +78,26 @@ export async function handler(event, context) {
       }
     }
 
-    // Construct S3 key
+    // ------------------------------------------------------------
+    // OWNERSHIP CHECK
+    // ------------------------------------------------------------
+    const meta = track.Item
+    const owner = meta.username?.S
+
+    if (owner !== username) {
+      return {
+        statusCode: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: 'Forbidden',
+          description: 'You do not own this track.'
+        })
+      }
+    }
+
+    // ------------------------------------------------------------
+    // S3 UPLOAD
+    // ------------------------------------------------------------
     const key = `${trackId}/pictures/${picIndex}.jpg`
 
     await s3.send(new PutObjectCommand({
@@ -73,10 +112,11 @@ export async function handler(event, context) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({ trackId, picIndex })
     }
+
   } catch (err) {
     logger.error(messages.ERROR_S3, { err: { message: err.message } }, context)
     return {
-      statusCode: 500, 
+      statusCode: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         error: messages.ERROR_S3,

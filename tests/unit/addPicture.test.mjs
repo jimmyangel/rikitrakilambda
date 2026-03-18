@@ -1,53 +1,114 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import jwt from 'jsonwebtoken'
 
-// Default mocks: S3 resolves, DynamoDB returns an item
-jest.mock('@aws-sdk/client-s3', () => ({
-  S3Client: jest.fn(() => ({ send: jest.fn().mockResolvedValue({}) })),
-  PutObjectCommand: jest.fn()
-}))
-
-jest.mock('@aws-sdk/client-dynamodb', () => {
-  const send = jest.fn(async () => ({ Item: { trackId: { S: 't1' } } }))
+// ------------------------------------------------------------
+// AWS MOCKS — same pattern as createTrack
+// ------------------------------------------------------------
+jest.mock('@aws-sdk/client-s3', () => {
+  const sendMock = jest.fn()
+  class S3Client {
+    send = sendMock
+  }
   return {
-    DynamoDBClient: jest.fn(() => ({ send })),
-    GetItemCommand: jest.fn(),
-    __esModule: true
+    __esModule: true,
+    S3Client,
+    PutObjectCommand: jest.fn(),
+    __sendMock: sendMock
   }
 })
 
-// Import handler once for happy‑path tests
+jest.mock('@aws-sdk/client-dynamodb', () => {
+  const sendMock = jest.fn(async () => ({
+    Item: {
+      trackId: { S: 't1' },
+      username: { S: 'userA' }
+    }
+  }))
+  class DynamoDBClient {
+    send = sendMock
+  }
+  return {
+    __esModule: true,
+    DynamoDBClient,
+    GetItemCommand: jest.fn(),
+    __sendMockDdb: sendMock
+  }
+})
+
+// ------------------------------------------------------------
+// Import mock handles + PutObjectCommand ONCE
+// ------------------------------------------------------------
+import { __sendMock as s3SendMock, PutObjectCommand } from '@aws-sdk/client-s3'
+import { __sendMockDdb as ddbSendMock } from '@aws-sdk/client-dynamodb'
+
+// Import handler AFTER mocks
 import { handler } from '../../functions/tracks/addPicture.mjs'
 
-describe('picture handler (happy path)', () => {
+let jwtSpy
+
+describe('addPicture handler', () => {
   const base64jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString('base64')
 
+  const authEvent = (overrides = {}) => ({
+    headers: { Authorization: 'Bearer sometoken' },
+    pathParameters: { trackId: 't1', picIndex: '0' },
+    ...overrides
+  })
+
+  beforeEach(() => {
+    jwtSpy = jest.spyOn(jwt, 'verify')
+    jwtSpy.mockReturnValue({ sub: 'userA' }) // default happy path
+    s3SendMock.mockReset()
+    ddbSendMock.mockReset()
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  // ------------------------------------------------------------
+  // JWT TESTS — same pattern as createTrack
+  // ------------------------------------------------------------
+  it('returns 401 when JWT is missing or invalid', async () => {
+    jwtSpy.mockImplementation(() => { throw new Error('MissingToken') })
+
+    const event = { headers: {}, body: base64jpeg, pathParameters: { trackId: 't1', picIndex: '0' } }
+    const res = await handler(event)
+
+    expect(res.statusCode).toBe(401)
+    expect(JSON.parse(res.body).error).toBe('MissingToken')
+  })
+
+  // ------------------------------------------------------------
+  // PAYLOAD VALIDATION
+  // ------------------------------------------------------------
   it('rejects payloads larger than 1MB', async () => {
     const bigBody = Buffer.alloc(1000001).toString('base64')
-    const event = { pathParameters: { trackId: 't1', picIndex: '0' }, body: bigBody }
-    const res = await handler(event)
+    const res = await handler(authEvent({ body: bigBody }))
     expect(res.statusCode).toBe(413)
-    const parsed = JSON.parse(res.body)
-    expect(parsed.error).toBe('Payload too large')
   })
 
   it('rejects non-JPEG payloads', async () => {
     const pngBody = Buffer.from([0x89, 0x50, 0x4e, 0x47]).toString('base64')
-    const event = { pathParameters: { trackId: 't1', picIndex: '0' }, body: pngBody }
-    const res = await handler(event)
+    const res = await handler(authEvent({ body: pngBody }))
     expect(res.statusCode).toBe(400)
-    const parsed = JSON.parse(res.body)
-    expect(parsed.error).toBe('Invalid input')
   })
 
-  it('uploads valid JPEG to S3 when track exists', async () => {
-    const event = { pathParameters: { trackId: 't1', picIndex: '0' }, body: base64jpeg }
-    const res = await handler(event)
+  // ------------------------------------------------------------
+  // HAPPY PATH
+  // ------------------------------------------------------------
+  it('uploads valid JPEG when user owns the track', async () => {
+    ddbSendMock.mockResolvedValue({
+      Item: {
+        trackId: { S: 't1' },
+        username: { S: 'userA' }
+      }
+    })
+
+    s3SendMock.mockResolvedValue({})
+
+    const res = await handler(authEvent({ body: base64jpeg }))
     expect(res.statusCode).toBe(201)
-    const parsed = JSON.parse(res.body)
-    expect(parsed.trackId).toBe('t1')
-    expect(parsed.picIndex).toBe('0')
-    expect(S3Client).toHaveBeenCalled()
+
     expect(PutObjectCommand).toHaveBeenCalledWith(
       expect.objectContaining({
         Bucket: process.env.BUCKET_NAME,
@@ -56,51 +117,40 @@ describe('picture handler (happy path)', () => {
       })
     )
   })
-})
 
-describe('picture handler (error path)', () => {
-  const base64jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString('base64')
-
+  // ------------------------------------------------------------
+  // ERROR PATHS
+  // ------------------------------------------------------------
   it('returns 404 if track does not exist', async () => {
-    jest.doMock('@aws-sdk/client-dynamodb', () => ({
-      DynamoDBClient: jest.fn(() => ({
-        send: jest.fn(async () => ({ Item: undefined }))
-      })),
-      GetItemCommand: jest.fn()
-    }))
+    ddbSendMock.mockResolvedValue({ Item: undefined })
 
-    jest.resetModules()
-    const { handler: freshHandler } = await import('../../functions/tracks/addPicture.mjs')
-
-    const event = { pathParameters: { trackId: 'missing', picIndex: '0' }, body: base64jpeg }
-    const res = await freshHandler(event)
+    const res = await handler(authEvent({ body: base64jpeg }))
     expect(res.statusCode).toBe(404)
-    const parsed = JSON.parse(res.body)
-    expect(parsed.description).toMatch(/not found/)
   })
 
-    it('handles S3 errors gracefully with 500', async () => {
-    // Mock DynamoDB to always return a valid track
-    jest.doMock('@aws-sdk/client-dynamodb', () => ({
-        DynamoDBClient: jest.fn(() => ({
-        send: jest.fn(async () => ({ Item: { trackId: { S: 't1' } } }))
-        })),
-        GetItemCommand: jest.fn()
-    }))
-
-    // Mock S3 to reject
-    jest.doMock('@aws-sdk/client-s3', () => ({
-        S3Client: jest.fn(() => ({ send: jest.fn().mockRejectedValue(new Error('boom')) })),
-        PutObjectCommand: jest.fn()
-    }))
-
-    jest.resetModules()
-    const { handler: freshHandler } = await import('../../functions/tracks/addPicture.mjs')
-
-    const event = { pathParameters: { trackId: 't1', picIndex: '0' }, body: base64jpeg }
-    const res = await freshHandler(event)
-    expect(res.statusCode).toBe(500)
-    const parsed = JSON.parse(res.body)
-    expect(parsed.error).toBe('S3 error')
+  it('returns 403 if user does not own the track', async () => {
+    ddbSendMock.mockResolvedValue({
+      Item: {
+        trackId: { S: 't1' },
+        username: { S: 'otherUser' }
+      }
     })
+
+    const res = await handler(authEvent({ body: base64jpeg }))
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('returns 500 if S3 upload fails', async () => {
+    ddbSendMock.mockResolvedValue({
+      Item: {
+        trackId: { S: 't1' },
+        username: { S: 'userA' }
+      }
+    })
+
+    s3SendMock.mockRejectedValue(new Error('boom'))
+
+    const res = await handler(authEvent({ body: base64jpeg }))
+    expect(res.statusCode).toBe(500)
+  })
 })

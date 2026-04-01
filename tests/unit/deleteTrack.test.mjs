@@ -1,7 +1,7 @@
 import { handler } from '../../functions/tracks/deleteTrack.mjs'
 import { verifyJwt } from '../../functions/utils/auth.mjs'
 
-// --- AWS MOCKS (MATCH ORIGINAL PATTERN) ------------------------------------
+// --- AWS MOCKS --------------------------------------------------------------
 
 jest.mock('@aws-sdk/client-dynamodb', () => ({
   DynamoDBClient: jest.fn().mockImplementation(() => ({}))
@@ -15,6 +15,7 @@ jest.mock('@aws-sdk/lib-dynamodb', () => {
     },
     QueryCommand: jest.fn(),
     BatchWriteCommand: jest.fn(),
+    GetCommand: jest.fn(),
     __send: send
   }
 })
@@ -31,7 +32,7 @@ jest.mock('@aws-sdk/client-s3', () => {
 
 jest.mock('../../functions/utils/auth.mjs')
 
-// Extract the send mocks
+// Extract send mocks
 import * as ddbModule from '@aws-sdk/lib-dynamodb'
 import * as s3Module from '@aws-sdk/client-s3'
 
@@ -47,9 +48,10 @@ describe('deleteTrack ownership validation', () => {
   })
 
   test('returns 404 when metadata item does not exist', async () => {
-    verifyJwt.mockReturnValue({ sub: 'alice' })
+    // Token does NOT claim admin → no DB user lookup
+    verifyJwt.mockReturnValue({ sub: 'alice', isAdmin: false })
 
-    // Metadata query returns no items
+    // 1. Metadata query returns no items
     ddbSend.mockResolvedValueOnce({ Items: [] })
 
     const event = { pathParameters: { trackId: 'T1' } }
@@ -60,8 +62,9 @@ describe('deleteTrack ownership validation', () => {
   })
 
   test('returns 403 when track is owned by someone else', async () => {
-    verifyJwt.mockReturnValue({ sub: 'alice' })
+    verifyJwt.mockReturnValue({ sub: 'alice', isAdmin: false })
 
+    // 1. Metadata query → owned by bob
     ddbSend.mockResolvedValueOnce({
       Items: [{ PK: 'TRACK#T1', SK: 'METADATA', username: 'bob' }]
     })
@@ -74,9 +77,9 @@ describe('deleteTrack ownership validation', () => {
   })
 
   test('returns 204 when user owns the track', async () => {
-    verifyJwt.mockReturnValue({ sub: 'alice' })
+    verifyJwt.mockReturnValue({ sub: 'alice', isAdmin: false })
 
-    // 1. Metadata query
+    // 1. Metadata query → owned by alice
     ddbSend.mockResolvedValueOnce({
       Items: [{ PK: 'TRACK#T1', SK: 'METADATA', username: 'alice' }]
     })
@@ -84,7 +87,7 @@ describe('deleteTrack ownership validation', () => {
     // 2. S3 list
     s3Send.mockResolvedValueOnce({ Contents: [] })
 
-    // 3. DynamoDB delete batch
+    // 3. Query all track items for deletion
     ddbSend.mockResolvedValueOnce({ Items: [] })
 
     const event = { pathParameters: { trackId: 'T1' } }

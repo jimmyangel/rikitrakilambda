@@ -27,7 +27,9 @@ export const handler = async (event, context) => {
     // ---------- JWT ----------
     const jwtResult = verifyJwt(event)
     if (jwtResult.statusCode) return jwtResult
+
     const username = jwtResult.sub
+    const tokenIsAdmin = jwtResult.isAdmin === true
 
     // ---------- Schema validation ----------
     const { valid, errors } = validate('trackEditSchema', body)
@@ -56,8 +58,19 @@ export const handler = async (event, context) => {
       }
     }
 
-    // ---------- Ownership check ----------
-    if (existingMetadata.username !== username) {
+    // ---------- Determine admin status ----------
+    let isAdmin = false
+
+    if (tokenIsAdmin) {
+      const userResp = await ddb.send(new GetCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: { PK: `USER#${username}`, SK: 'METADATA' }
+      }))
+      isAdmin = userResp.Item?.isAdmin === true
+    }
+
+    // ---------- Ownership check (skip if admin) ----------
+    if (!isAdmin && existingMetadata.username !== username) {
       return {
         statusCode: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -134,7 +147,7 @@ export const handler = async (event, context) => {
       finalPhotos = incomingPhotos
     }
 
-    // ---------- Build updated METADATA (full rewrite) ----------
+    // ---------- Build updated METADATA ----------
     const updatedMetadata = {
       ...existingMetadata,
       trackName: incomingTrackName,
@@ -168,22 +181,17 @@ export const handler = async (event, context) => {
     const oldSkSet = new Set()
     const newSkSet = new Set()
 
-    // Build old SK set
     for (let i = 0; i < oldTags.length; i++) {
-      const tag = oldTags[i]
-      oldSkSet.add(`REGION#${i}#${tag}`)
+      oldSkSet.add(`REGION#${i}#${oldTags[i]}`)
     }
 
-    // Build new SK set
     for (let i = 0; i < newTags.length; i++) {
-      const tag = newTags[i]
-      newSkSet.add(`REGION#${i}#${tag}`)
+      newSkSet.add(`REGION#${i}#${newTags[i]}`)
     }
 
-    // Deletes: SKs in old but not in new
+    // Deletes
     for (let i = 0; i < oldTags.length; i++) {
-      const tag = oldTags[i]
-      const sk = `REGION#${i}#${tag}`
+      const sk = `REGION#${i}#${oldTags[i]}`
       if (!newSkSet.has(sk)) {
         transactItems.push({
           Delete: {
@@ -194,10 +202,9 @@ export const handler = async (event, context) => {
       }
     }
 
-    // Inserts: SKs in new but not in old
+    // Inserts
     for (let i = 0; i < newTags.length; i++) {
-      const tag = newTags[i]
-      const sk = `REGION#${i}#${tag}`
+      const sk = `REGION#${i}#${newTags[i]}`
       if (!oldSkSet.has(sk)) {
         transactItems.push({
           Put: {
@@ -206,7 +213,7 @@ export const handler = async (event, context) => {
               PK: `TRACK#${trackId}`,
               SK: sk,
               trackId,
-              trackRegionTag: tag,
+              trackRegionTag: newTags[i],
               regionIndex: i,
               trackName: updatedMetadata.trackName,
               trackType: updatedMetadata.trackType,
@@ -223,10 +230,9 @@ export const handler = async (event, context) => {
       }
     }
 
-    // Updates: SKs present in both old and new → refresh metadata
+    // Updates
     for (let i = 0; i < newTags.length; i++) {
-      const tag = newTags[i]
-      const sk = `REGION#${i}#${tag}`
+      const sk = `REGION#${i}#${newTags[i]}`
       if (oldSkSet.has(sk) && newSkSet.has(sk)) {
         transactItems.push({
           Put: {
@@ -235,7 +241,7 @@ export const handler = async (event, context) => {
               PK: `TRACK#${trackId}`,
               SK: sk,
               trackId,
-              trackRegionTag: tag,
+              trackRegionTag: newTags[i],
               regionIndex: i,
               trackName: updatedMetadata.trackName,
               trackType: updatedMetadata.trackType,

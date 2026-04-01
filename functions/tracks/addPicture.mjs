@@ -26,9 +26,11 @@ export async function handler(event, context) {
     // ------------------------------------------------------------
     const jwtResult = verifyJwt(event)
     if (jwtResult.statusCode) {
-      return jwtResult   // already formatted error response
+      return jwtResult
     }
+
     const username = jwtResult.sub
+    const tokenIsAdmin = jwtResult.isAdmin === true
 
     const body = Buffer.from(event.body, 'base64')
 
@@ -78,13 +80,30 @@ export async function handler(event, context) {
       }
     }
 
-    // ------------------------------------------------------------
-    // OWNERSHIP CHECK
-    // ------------------------------------------------------------
     const meta = track.Item
     const owner = meta.username?.S
 
-    if (owner !== username) {
+    // ------------------------------------------------------------
+    // ADMIN CHECK (optimized)
+    // ------------------------------------------------------------
+    let isAdmin = false
+
+    if (tokenIsAdmin) {
+      const userResp = await ddb.send(new GetItemCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: {
+          PK: { S: `USER#${username}` },
+          SK: { S: 'METADATA' }
+        }
+      }))
+
+      isAdmin = userResp.Item?.isAdmin?.BOOL === true
+    }
+
+    // ------------------------------------------------------------
+    // OWNERSHIP CHECK (skip if admin)
+    // ------------------------------------------------------------
+    if (!isAdmin && owner !== username) {
       return {
         statusCode: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

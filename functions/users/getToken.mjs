@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import { corsHeaders, messages } from "../utils/config.mjs"
-import  *  as logger from "../utils/logger.mjs"
+import * as logger from "../utils/logger.mjs"
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
@@ -14,7 +14,7 @@ export const handler = async (event, context) => {
     const JWT_ISSUER = process.env.JWT_ISSUER
 
     try {
-    // Parse Basic Auth header
+        // Parse Basic Auth header
         const authHeader = event.headers?.Authorization || event.headers?.authorization
         if (!authHeader || !authHeader.startsWith("Basic ")) {
             return {
@@ -50,12 +50,19 @@ export const handler = async (event, context) => {
             return {
                 statusCode: 403,
                 headers: { ...corsHeaders, "WWW-Authenticate": "AJAXFormBased" },
-                body: JSON.stringify({error: 'Inactive', description: messages.WARN_ACCT_NOT_ACTIVE})
+                body: JSON.stringify({ error: "Inactive", description: messages.WARN_ACCT_NOT_ACTIVE })
             }
         }
 
+        // Build JWT payload (admin flag only if true)
+        const payload = {
+            iss: JWT_ISSUER,
+            sub: username,
+            ...(user.isAdmin === true ? { isAdmin: true } : {})
+        }
+
         // Issue JWT
-        const token = jwt.sign({ iss: JWT_ISSUER, sub: username }, JWT_SECRET)
+        const token = jwt.sign(payload, JWT_SECRET)
 
         return {
             statusCode: 200,
@@ -66,13 +73,12 @@ export const handler = async (event, context) => {
             body: token
         }
 
-        } catch (err) {
-            logger.error(messages.ERROR_DB, { err: { message: err.message } }, context)
-            return {
-                statusCode: 500,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: "DBError", description: messages.ERROR_DB })
-            }
+    } catch (err) {
+        logger.error(messages.ERROR_DB, { err: { message: err.message } }, context)
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: "DBError", description: messages.ERROR_DB })
+        }
     }
 }
-

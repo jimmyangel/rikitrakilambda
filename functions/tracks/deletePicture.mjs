@@ -14,7 +14,9 @@ export const handler = async (event, context) => {
     // ------------------------------------------------------------
     const jwtResult = verifyJwt(event)
     if (jwtResult.statusCode) return jwtResult
+
     const username = jwtResult.sub
+    const tokenIsAdmin = jwtResult.isAdmin === true
 
     const { trackId, picIndex } = event.pathParameters
 
@@ -40,11 +42,29 @@ export const handler = async (event, context) => {
       }
     }
 
-    // ------------------------------------------------------------
-    // OWNERSHIP CHECK
-    // ------------------------------------------------------------
     const owner = track.Item.username?.S
-    if (owner !== username) {
+
+    // ------------------------------------------------------------
+    // ADMIN CHECK (optimized)
+    // ------------------------------------------------------------
+    let isAdmin = false
+
+    if (tokenIsAdmin) {
+      const userResp = await ddb.send(new GetItemCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: {
+          PK: { S: `USER#${username}` },
+          SK: { S: 'METADATA' }
+        }
+      }))
+
+      isAdmin = userResp.Item?.isAdmin?.BOOL === true
+    }
+
+    // ------------------------------------------------------------
+    // OWNERSHIP CHECK (skip if admin)
+    // ------------------------------------------------------------
+    if (!isAdmin && owner !== username) {
       return {
         statusCode: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -68,7 +88,6 @@ export const handler = async (event, context) => {
       }))
     } catch (err) {
       if (err.name === 'NoSuchKey') {
-        // Picture already missing — log but do NOT fail
         logger.warn('Picture already missing', { trackId, picIndex })
       } else {
         throw err

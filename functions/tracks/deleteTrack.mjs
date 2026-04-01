@@ -1,6 +1,6 @@
 // functions/tracks/deleteTrack.mjs
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3'
 import * as logger from '../utils/logger.mjs'
 import { corsHeaders, messages } from '../utils/config.mjs'
@@ -21,14 +21,32 @@ export const handler = async (event, context) => {
       }
     }
 
-    // Validate JWT
+    // --- Validate JWT ---
     const jwtResult = verifyJwt(event)
     if (jwtResult.statusCode) {
       return jwtResult
     }
-    const username = jwtResult.sub
 
-    // --- Ownership check ---
+    const username = jwtResult.sub
+    const tokenIsAdmin = jwtResult.isAdmin === true
+
+    // --- Determine admin status ---
+    let isAdmin = false
+
+    if (tokenIsAdmin) {
+      // Only fetch DB if token claims admin
+      const userResp = await ddb.send(new GetCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: {
+          PK: `USER#${username}`,
+          SK: 'METADATA'
+        }
+      }))
+
+      isAdmin = userResp.Item?.isAdmin === true
+    }
+
+    // --- Fetch track metadata ---
     const metaResp = await ddb.send(new QueryCommand({
       TableName: process.env.TABLE_NAME,
       KeyConditionExpression: 'PK = :pk AND SK = :sk',
@@ -48,7 +66,8 @@ export const handler = async (event, context) => {
       }
     }
 
-    if (meta.username !== username) {
+    // --- Ownership check (skip if admin) ---
+    if (!isAdmin && meta.username !== username) {
       return {
         statusCode: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,7 +91,6 @@ export const handler = async (event, context) => {
     }
 
     // --- Delete DynamoDB items ---
-    // First query all items for this track
     const queryResp = await ddb.send(new QueryCommand({
       TableName: process.env.TABLE_NAME,
       KeyConditionExpression: 'PK = :pk',
@@ -86,7 +104,6 @@ export const handler = async (event, context) => {
         }
       }))
 
-      // BatchWrite supports 25 items max per request
       while (deleteRequests.length > 0) {
         const batch = deleteRequests.splice(0, 25)
         await ddb.send(new BatchWriteCommand({
@@ -102,6 +119,7 @@ export const handler = async (event, context) => {
       headers: corsHeaders,
       body: null
     }
+
   } catch (err) {
     logger.error(messages.ERROR_DB_TRACK, { err: { message: err.message } }, context)
     return {

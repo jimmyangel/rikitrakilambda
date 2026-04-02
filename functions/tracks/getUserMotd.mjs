@@ -6,7 +6,7 @@ import * as logger from "../utils/logger.mjs"
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 
-const MAX_MOTD = 5
+const MAX_MOTD = 10
 const PAGE_SIZE = 50
 
 export const handler = async (event, context) => {

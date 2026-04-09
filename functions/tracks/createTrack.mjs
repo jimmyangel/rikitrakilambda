@@ -60,7 +60,8 @@ export const handler = async (event, context) => {
         Bucket: process.env.BUCKET_NAME,
         Key: gpxKey,
         Body: body.trackGPXBlob,
-        ContentType: 'application/gpx+xml'
+        ContentType: 'application/gpx+xml',
+        CacheControl: 'public, max-age=0, must-revalidate'
       }))
     }
 
@@ -76,7 +77,8 @@ export const handler = async (event, context) => {
           Bucket: process.env.BUCKET_NAME,
           Key: thumbKey,
           Body: buffer,
-          ContentType: 'image/jpeg'
+          ContentType: 'image/jpeg',
+          CacheControl: 'public, max-age=0, must-revalidate'
         }))
 
         trackPhotos.push({

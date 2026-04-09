@@ -110,7 +110,8 @@ export const handler = async (event, context) => {
             Bucket: process.env.BUCKET_NAME,
             Key: thumbKey,
             Body: buffer,
-            ContentType: 'image/jpeg'
+            ContentType: 'image/jpeg',
+            CacheControl: 'public, max-age=0, must-revalidate'
           }))
         }
 

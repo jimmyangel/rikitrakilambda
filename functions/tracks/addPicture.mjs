@@ -123,7 +123,8 @@ export async function handler(event, context) {
       Bucket: process.env.BUCKET_NAME,
       Key: key,
       Body: body,
-      ContentType: 'image/jpeg'
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=0, must-revalidate'
     }))
 
     return {
